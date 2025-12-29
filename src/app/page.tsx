@@ -42,8 +42,27 @@ export default function Home() {
 		setTimeout(() => setCopied(false), 2000);
 	};
 
+	const jsonLd = {
+		'@context': 'https://schema.org',
+		'@type': 'SoftwareApplication',
+		name: 'Wify',
+		applicationCategory: 'UtilityApplication',
+		operatingSystem: 'Any',
+		offers: {
+			'@type': 'Offer',
+			price: '0',
+			priceCurrency: 'USD',
+		},
+		description: 'Generate smart links that open Instagram, YouTube, TikTok, and Telegram directly in their apps.',
+		featureList: 'Deep linking, Social Media App Opener, No Login, No Tracking',
+	};
+
 	return (
 		<div className="min-h-screen bg-white text-gray-900 dark:bg-black dark:text-gray-100 font-sans selection:bg-blue-100 selection:text-blue-900">
+			<script
+				type="application/ld+json"
+				dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+			/>
 
 			{/* Navbar / Logo */}
 			<header className="p-6 border-b border-gray-100 dark:border-gray-900">
