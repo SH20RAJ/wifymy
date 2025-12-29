@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-	title: 'Wify – Open links in apps',
-	description: 'Open social media links directly in their native apps. No tracking, no login.',
+	title: 'Wify – Open social links directly in apps',
+	description: 'Generate smart links that open Instagram, YouTube, TikTok, and Telegram directly in their apps. Free, unlimited, no tracking.',
 	robots: {
 		index: false,
 		follow: false,

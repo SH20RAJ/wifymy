@@ -9,73 +9,40 @@ export interface LinkData {
 }
 
 export function parseUrlAndGenerateLinks(path: string[]): LinkData {
-    // Path is an array, e.g. ['instagram.com', 'p', 'xyz']
+    // Reconstruct path for server-side logic if needed
     const fullPath = path.join('/');
-    const normalizedPath = fullPath.toLowerCase();
-
-    // Instagram
-    // https://instagram.com/p/{shortcode} -> instagram://media?id={shortcode}
-    // Note: Shortcode isn't directly the Media ID, but purely for this reliable opener we might rely on web fallback or try a different scheme if needed. 
-    // Actually, instagram://media?id={MEDIA_ID} requires a numeric ID. 
-    // However, instagram://library?AssetPath=... is different.
-    // Common trick: intent://instagram.com/p/{code}#Intent;package=com.instagram.android;scheme=https;end 
-    // Or simply instagram.com/p/{code} usually triggers app if installed via Universal Links / App Links.
-    // But USER asked for: "instagram://media?id={shortcode}"
-    // Wait, standard IG deep link for post usually needs Media ID (numeric).
-    // Let's stick to what allows opening. 
-    // For Instagram, often `instagram://media?id=` expects numeric. 
-    // Let's try to map best effort. If User specified: "instagram://media?id={shortcode}", I will follow that, 
-    // but usually shortcode != id. 
-    // Let's also support: instagram://user?username={username}
-
-    if (normalizedPath.includes('instagram.com')) {
-        // Check for Post
-        if (path.includes('p') || path.includes('reel') || path.includes('tv')) {
-            const shortcodeIndex = path.findIndex(p => p === 'p' || p === 'reel' || p === 'tv') + 1;
-            if (shortcodeIndex < path.length) {
-                const shortcode = path[shortcodeIndex];
-                // User requested: instagram://media?id={shortcode} - adhering to request even if ID usually numeric.
-                // Some docs suggest /p/ works with http scheme but let's try custom scheme if requested.
-                // Actually, for "p", sending https link to client might be safer for Universal Links.
-                // But prompt says: "instagram://media?id={shortcode}"
-                return {
-                    platform: 'instagram',
-                    deepLink: `instagram://media?id=${shortcode}`,
-                    webLink: `https://instagram.com/p/${shortcode}`,
-                    originalUrl: fullPath
-                };
-            }
-        }
-    }
-
-    // YouTube
-    // youtube://watch?v={id}
-    if (normalizedPath.includes('youtube.com') || normalizedPath.includes('youtu.be')) {
-        // Logic for path segment extraction if needed
-    }
-
-    // Re-evaluating: The `path` array from Next.js is just segments.
-    // Query parameters are separate in `searchParams`.
-    // The strategy: Reconstruct the target URL from path + searchParams.
-
-    return {
-        platform: 'unknown',
-        deepLink: '',
-        webLink: `https://${fullPath}`,
-        originalUrl: fullPath
-    };
+    return generateLinks(fullPath);
 }
 
-export function generateLinks(urlStr: string): LinkData {
+export function generateLinks(input: string): LinkData {
+    let urlStr = input.trim();
+
+    // Handle @username logic -> Default to Instagram
+    if (urlStr.startsWith('@')) {
+        const username = urlStr.substring(1);
+        // Instagram Profile
+        return {
+            platform: 'instagram',
+            deepLink: `instagram://user?username=${username}`,
+            webLink: `https://instagram.com/${username}`,
+            originalUrl: `instagram.com/${username}`
+        };
+    }
+
+    // Heuristic: If it looks like "instagram.com/foo", prepend https
+    // But if it's just "shaswat", it's ambiguous. We'll assume input has some domain indicator OR is a direct paste.
+    // If no protocol, try to fix.
+    if (!urlStr.startsWith('http://') && !urlStr.startsWith('https://')) {
+        urlStr = 'https://' + urlStr;
+    }
+
     let url: URL;
     try {
-        // Ensure protocol
-        if (!urlStr.startsWith('http')) {
-            urlStr = 'https://' + urlStr;
-        }
         url = new URL(urlStr);
     } catch {
-        return { platform: 'unknown', deepLink: '', webLink: urlStr, originalUrl: urlStr };
+        // Fallback: if URL construction fails, it might be a raw username without @?
+        // For now, return unknown.
+        return { platform: 'unknown', deepLink: '', webLink: input, originalUrl: input };
     }
 
     const hostname = url.hostname.replace('www.', '');
@@ -83,23 +50,19 @@ export function generateLinks(urlStr: string): LinkData {
 
     // Instagram
     if (hostname === 'instagram.com') {
-        // /stories/username/storyId
-        const storiesMatch = pathname.match(/\/stories\/([^/]+)\/([^/]+)/);
+        // Stories: /stories/username/storyId or /stories/username
+        const storiesMatch = pathname.match(/\/stories\/([^/]+)/);
         if (storiesMatch) {
             const username = storiesMatch[1];
-            // Story deep link is tricky, usually just opening profile or stories list works better. 
-            // `instagram://stories?username={username}` opens the user's stories.
-            // There isn't a reliable "open specific story ID" deep link widely documented that works everywhere without Auth.
-            // Best effort: Open user's stories.
             return {
                 platform: 'instagram',
                 deepLink: `instagram://stories?username=${username}`,
-                webLink: urlStr,
+                webLink: `https://instagram.com/stories/${username}`,
                 originalUrl: urlStr
             };
         }
 
-        // /p/SHORTCODE, /reel/SHORTCODE, /tv/SHORTCODE
+        // Media: /p, /reel, /tv
         const mediaMatch = pathname.match(/\/(p|reel|tv)\/([^/]+)/);
         if (mediaMatch) {
             const shortcode = mediaMatch[2];
@@ -112,10 +75,8 @@ export function generateLinks(urlStr: string): LinkData {
         }
 
         // Profile: /username
-        // We need to ensure it's not a reserved path
         const firstSegment = pathname.split('/')[1];
-        const reservedPaths = ['p', 'reel', 'tv', 'stories', 'explore', 'direct', 'accounts', 'developer', 'about', 'legal', 'create', 'reels'];
-
+        const reservedPaths = ['p', 'reel', 'tv', 'stories', 'explore', 'direct', 'accounts', 'developer', 'about', 'legal', 'create', 'reels', 'api'];
         if (firstSegment && !reservedPaths.includes(firstSegment)) {
             return {
                 platform: 'instagram',
@@ -137,7 +98,8 @@ export function generateLinks(urlStr: string): LinkData {
                 originalUrl: urlStr
             };
         }
-        // Support /shorts/ID
+
+        // Shorts: /shorts/ID
         const shortsMatch = pathname.match(/\/shorts\/([^/]+)/);
         if (shortsMatch) {
             const id = shortsMatch[1];
@@ -146,9 +108,24 @@ export function generateLinks(urlStr: string): LinkData {
                 deepLink: `youtube://watch?v=${id}`,
                 webLink: `https://youtube.com/watch?v=${id}`,
                 originalUrl: urlStr
+            };
+        }
+
+        // Channel: /@handle
+        if (pathname.startsWith('/@')) {
+            // Deep linking to channel isn't perfect on all OS, usually web fallback is fine, 
+            // or youtube://www.youtube.com/@handle (some versions support http scheme intent)
+            // We'll stick to webLink fallback mostly, but `youtube://` scheme usually opens app home.
+            // Let's try `youtube://www.youtube.com/@handle` for parity.
+            return {
+                platform: 'youtube',
+                deepLink: `youtube://${hostname}${pathname}`, // Experimental
+                webLink: `https://${hostname}${pathname}`,
+                originalUrl: urlStr
             }
         }
     }
+
     if (hostname === 'youtu.be') {
         const videoId = pathname.slice(1);
         if (videoId) {
@@ -162,18 +139,37 @@ export function generateLinks(urlStr: string): LinkData {
     }
 
     // TikTok
-    if (hostname === 'tiktok.com') {
-        // /@user/video/ID
+    if (hostname === 'tiktok.com' || hostname === 'vm.tiktok.com' || hostname === 'vt.tiktok.com') {
+        // Logic for vm.tiktok.com (short links)
+        // Usually these redirects need to be resolved to get the Video ID.
+        // But we are client-side only for generation.
+        // Strategy: Just map it to `wify.my/vm.tiktok.com/ABC`.
+        // The server component `[...path]` handles the redirect.
+        // DOES the server component resolve redirects? No, it just passes through.
+        // If we pass `vm.tiktok.com/ABC` to the mobile device:
+        // Mobile app might open `https://vm.tiktok.com/ABC` via Universal Links.
+        // So we just preserve it.
+
+        // Standard: /@user/video/ID
         const match = pathname.match(/\/@([^/]+)\/video\/([^/]+)/);
         if (match) {
             const id = match[2];
             const user = match[1];
             return {
                 platform: 'tiktok',
-                deepLink: `tiktok://video/${id}`, // Instructions: tiktok://video/{id}
+                deepLink: `tiktok://video/${id}`,
                 webLink: `https://www.tiktok.com/@${user}/video/${id}`,
                 originalUrl: urlStr
             };
+        }
+
+        // If it's a short link (vm.tiktok.com), we can't extract ID without fetch.
+        // Return it as-is for web fallback / universal link triggering.
+        return {
+            platform: 'tiktok',
+            deepLink: '', // No specific scheme for short link, rely on Universal Link or Fallback
+            webLink: urlStr,
+            originalUrl: urlStr
         }
     }
 
@@ -187,27 +183,46 @@ export function generateLinks(urlStr: string): LinkData {
             return {
                 platform: 'twitter',
                 deepLink: `twitter://status?id=${id}`,
-                webLink: `https://x.com/${user}/status/${id}`, // Force x.com for web fallback as it's the current canon
+                webLink: `https://x.com/${user}/status/${id}`, // Canonical X
                 originalUrl: urlStr
             };
+        }
+        // Profile
+        const firstSegment = pathname.split('/')[1];
+        if (firstSegment && !['home', 'explore', 'notifications'].includes(firstSegment)) {
+            return {
+                platform: 'twitter',
+                deepLink: `twitter://user?screen_name=${firstSegment}`,
+                webLink: `https://x.com/${firstSegment}`,
+                originalUrl: urlStr
+            }
         }
     }
 
     // Telegram
     // t.me/channel/POST_ID
     if (hostname === 't.me') {
-        // pathname might be /channel/ID or /c/ID ? Usually t.me/username/postid
         const parts = pathname.split('/').filter(Boolean);
-        // t.me/durov/123
-        if (parts.length >= 2) {
+        if (parts.length >= 1) {
             const domain = parts[0];
-            const post = parts[1];
-            return {
-                platform: 'telegram',
-                deepLink: `tg://resolve?domain=${domain}&post=${post}`,
-                webLink: `https://t.me/${domain}/${post}`,
-                originalUrl: urlStr
-            };
+            const post = parts[1]; // Optional
+
+            if (post) {
+                return {
+                    platform: 'telegram',
+                    deepLink: `tg://resolve?domain=${domain}&post=${post}`,
+                    webLink: `https://t.me/${domain}/${post}`,
+                    originalUrl: urlStr
+                };
+            } else {
+                // Just channel
+                return {
+                    platform: 'telegram',
+                    deepLink: `tg://resolve?domain=${domain}`,
+                    webLink: `https://t.me/${domain}`,
+                    originalUrl: urlStr
+                }
+            }
         }
     }
 
