@@ -83,15 +83,44 @@ export function generateLinks(urlStr: string): LinkData {
 
     // Instagram
     if (hostname === 'instagram.com') {
-        // /p/SHORTCODE
-        // /reel/SHORTCODE
-        const match = pathname.match(/\/(p|reel|tv)\/([^/]+)/);
-        if (match) {
-            const shortcode = match[2];
+        // /stories/username/storyId
+        const storiesMatch = pathname.match(/\/stories\/([^/]+)\/([^/]+)/);
+        if (storiesMatch) {
+            const username = storiesMatch[1];
+            // Story deep link is tricky, usually just opening profile or stories list works better. 
+            // `instagram://stories?username={username}` opens the user's stories.
+            // There isn't a reliable "open specific story ID" deep link widely documented that works everywhere without Auth.
+            // Best effort: Open user's stories.
             return {
                 platform: 'instagram',
-                deepLink: `instagram://media?id=${shortcode}`, // Per instructions
+                deepLink: `instagram://stories?username=${username}`,
+                webLink: urlStr,
+                originalUrl: urlStr
+            };
+        }
+
+        // /p/SHORTCODE, /reel/SHORTCODE, /tv/SHORTCODE
+        const mediaMatch = pathname.match(/\/(p|reel|tv)\/([^/]+)/);
+        if (mediaMatch) {
+            const shortcode = mediaMatch[2];
+            return {
+                platform: 'instagram',
+                deepLink: `instagram://media?id=${shortcode}`,
                 webLink: `https://instagram.com/p/${shortcode}`,
+                originalUrl: urlStr
+            };
+        }
+
+        // Profile: /username
+        // We need to ensure it's not a reserved path
+        const firstSegment = pathname.split('/')[1];
+        const reservedPaths = ['p', 'reel', 'tv', 'stories', 'explore', 'direct', 'accounts', 'developer', 'about', 'legal', 'create', 'reels'];
+
+        if (firstSegment && !reservedPaths.includes(firstSegment)) {
+            return {
+                platform: 'instagram',
+                deepLink: `instagram://user?username=${firstSegment}`,
+                webLink: `https://instagram.com/${firstSegment}`,
                 originalUrl: urlStr
             };
         }

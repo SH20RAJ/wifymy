@@ -3,8 +3,6 @@ import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import ClientRedirect from './client-redirect';
 
-export const runtime = 'edge';
-
 // Force no caching for redirects to ensure User-Agent logic always runs
 export const dynamic = 'force-dynamic';
 
