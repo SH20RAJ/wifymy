@@ -245,6 +245,9 @@ export default function Home() {
 						<p className="text-xs text-gray-400 font-medium">
 							&copy; {new Date().getFullYear()} Wify. All rights reserved.
 						</p>
+						<a href="https://visitorbadge.io/status?path=https%3A%2F%2Fwify.my%2F" target="_blank" rel="noopener noreferrer" className="opacity-50 hover:opacity-100 transition-opacity">
+                            <img src="https://api.visitorbadge.io/api/combined?path=https%3A%2F%2Fwify.my%2F&countColor=%23263759&style=flat-square" alt="Visitor Badge" />
+                        </a>
 					</div>
 				</div>
 			</footer>
