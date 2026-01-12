@@ -76,9 +76,11 @@ export default function Home() {
 						<a href="#features" className="hover:text-gray-900 dark:hover:text-white transition-colors">Features</a>
 						<a href="#why" className="hover:text-gray-900 dark:hover:text-white transition-colors">Why Wify</a>
 					</div>
-					<Button variant="outline" size="sm" className="rounded-full px-5 text-xs font-semibold">
-						Coming Soon
-					</Button>
+					<a href="https://tally.so/r/7RKqRZ" target="_blank" rel="noopener noreferrer">
+						<Button variant="outline" size="sm" className="rounded-full px-5 text-xs font-semibold">
+							Join Waitlist
+						</Button>
+					</a>
 				</div>
 			</nav>
 
@@ -94,7 +96,7 @@ export default function Home() {
 						</div>
 
 						<h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-gray-950 dark:text-white text-balance leading-[1.1]">
-							Open social links <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-500 dark:from-blue-400 dark:to-indigo-300">directly in apps</span>
+							Open social links <br /><span className="text-transparent bg-clip-text bg-linear-to-r from-blue-600 to-indigo-500 dark:from-blue-400 dark:to-indigo-300">directly in apps</span>
 						</h1>
 
 						<p className="max-w-2xl mx-auto text-lg md:text-xl text-gray-600 dark:text-gray-400 leading-relaxed text-balance">
@@ -103,7 +105,7 @@ export default function Home() {
 
 						{/* Input Form Container */}
 						<div className="max-w-2xl mx-auto mt-12 relative group">
-							<div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl blur-xl opacity-20 group-focus-within:opacity-40 transition-opacity duration-500" />
+							<div className="absolute -inset-1 bg-linear-to-r from-blue-500 to-indigo-600 rounded-2xl blur-xl opacity-20 group-focus-within:opacity-40 transition-opacity duration-500" />
 
 							<div className="relative bg-white dark:bg-gray-900 border border-gray-200 dark:border-white/10 rounded-2xl p-2 shadow-2xl transition-all duration-300 focus-within:ring-2 focus-within:ring-blue-500/20">
 								<form onSubmit={handleGenerate} className="flex flex-col sm:flex-row gap-2">
@@ -164,7 +166,7 @@ export default function Home() {
 				<SupportedPlatforms />
 
 				{/* Features / Trust Section */}
-				<section id="features" className="py-24 bg-gray-50 dark:bg-white/[0.02] border-y border-gray-100 dark:border-white/5">
+				<section id="features" className="py-24 bg-gray-50 dark:bg-white/2 border-y border-gray-100 dark:border-white/5">
 					<div className="max-w-5xl mx-auto px-6">
 						<div className="grid md:grid-cols-3 gap-8">
 							<TrustCard
@@ -238,7 +240,7 @@ export default function Home() {
 						<div className="flex gap-10 text-xs font-semibold text-gray-500 uppercase tracking-widest">
 							<a href="#" className="hover:text-blue-500 transition-colors">Privacy</a>
 							<a href="#" className="hover:text-blue-500 transition-colors">Terms</a>
-							<span className="opacity-30 cursor-not-allowed">Pro</span>
+							<a href="https://tally.so/r/7RKqRZ" target="_blank" className="hover:text-blue-500 transition-colors text-blue-500">Waitlist</a>
 						</div>
 						<p className="text-xs text-gray-400 font-medium">
 							&copy; {new Date().getFullYear()} Wify. All rights reserved.
