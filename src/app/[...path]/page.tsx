@@ -1,6 +1,6 @@
 import { generateLinks } from '@/lib/deep-links';
 import { headers } from 'next/headers';
-import { redirect } from 'next/navigation';
+import { redirect, notFound } from 'next/navigation';
 import ClientRedirect from './client-redirect';
 
 // Force no caching for redirects to ensure User-Agent logic always runs
@@ -29,6 +29,14 @@ export default async function RedirectPage({
     // Reconstruct the URL path + query
     // params.path is ['instagram.com', 'p', 'xyz']
     const pathStr = resolvedParams.path.join('/');
+
+    // PREVENT STATIC ASSETS FROM BEING REDIRECTED
+    const ignoredExtensions = [
+        '.ico', '.png', '.jpg', '.jpeg', '.svg', '.json', '.xml', '.txt', '.css', '.js', '.woff', '.woff2', '.ttf', '.eot'
+    ];
+    if (ignoredExtensions.some(ext => pathStr.toLowerCase().endsWith(ext))) {
+        notFound();
+    }
 
     // Reconstruct query string if any
     const searchParamsObj = new URLSearchParams();
