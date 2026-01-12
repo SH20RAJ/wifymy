@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Copy, Check, ArrowRight, ShieldCheck, Zap, Lock, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { SupportedPlatforms } from '@/components/SupportedPlatforms';
 
 export default function Home() {
 	const [inputUrl, setInputUrl] = useState('');
@@ -159,6 +160,8 @@ export default function Home() {
 						</div>
 					</div>
 				</section>
+
+				<SupportedPlatforms />
 
 				{/* Features / Trust Section */}
 				<section id="features" className="py-24 bg-gray-50 dark:bg-white/[0.02] border-y border-gray-100 dark:border-white/5">
