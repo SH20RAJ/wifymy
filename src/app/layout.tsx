@@ -62,6 +62,7 @@ export const metadata: Metadata = {
 	},
 };
 
+import { ThemeProvider } from '@/components/theme-provider';
 import { Outfit } from 'next/font/google';
 
 const outfit = Outfit({
@@ -75,11 +76,20 @@ export default function RootLayout({
 	children: React.ReactNode;
 }>) {
 	return (
-		<html lang="en" className={`${outfit.variable} antialiased`}>
+		<html lang="en" suppressHydrationWarning className={`${outfit.variable} antialiased`}>
 			<head>
 				<link rel="icon" href="/favicon.ico" sizes="any" />
 			</head>
-			<body>{children}</body>
+			<body>
+				<ThemeProvider
+					attribute="class"
+					defaultTheme="system"
+					enableSystem
+					disableTransitionOnChange
+				>
+					{children}
+				</ThemeProvider>
+			</body>
 		</html>
 	);
 }

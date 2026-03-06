@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Copy, Check, ArrowUpRight, Zap, ArrowRight, ShieldCheck, Lock, Smartphone } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SupportedPlatforms } from '@/components/SupportedPlatforms';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function Home() {
 	const [inputUrl, setInputUrl] = useState('');
@@ -57,6 +58,7 @@ export default function Home() {
 						<a href="#platforms" className="hover:text-foreground transition-colors">Platforms</a>
 					</div>
 					<div className="flex items-center gap-4">
+						<ThemeToggle />
 						<a href="https://tally.so/r/7RKqRZ" target="_blank" rel="noopener noreferrer">
 							<Button variant="default" className="rounded-full px-6 font-semibold bg-primary text-primary-foreground hover:bg-primary/90 h-10 shadow-sm">
 								Join Waitlist <ArrowUpRight className="ml-1 h-4 w-4" />
@@ -187,7 +189,7 @@ export default function Home() {
 								Enhancing the Entire <br /> Engagement Cycle
 							</h2>
 							<p className="text-xl text-muted-foreground leading-relaxed max-w-xl text-balance">
-								Social apps trap users in limited in-app browsers where they aren't logged in. This kills conversions. Wify ensures users land directly in the native app safely.
+								Social apps trap users in limited in-app browsers where they aren&apos;t logged in. This kills conversions. Wify ensures users land directly in the native app safely.
 							</p>
 							<div className="pt-4">
 								<a href="https://tally.so/r/7RKqRZ" target="_blank" rel="noopener noreferrer">
