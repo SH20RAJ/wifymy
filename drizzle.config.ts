@@ -5,9 +5,9 @@ dotenv.config({ path: '.env' });
 
 export default defineConfig({
   schema: './src/db/schema.ts',
-  out: './supabase/migrations',
-  dialect: 'postgresql',
+  out: './drizzle',
+  dialect: 'sqlite',
   dbCredentials: {
-    url: process.env.DATABASE_URL!,
+    url: process.env.DATABASE_URL || 'file:local.db',
   },
 });
