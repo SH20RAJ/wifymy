@@ -1,8 +1,6 @@
-import { db } from "@/db";
-import { pages, links } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { stackServerApp } from "@/stack/server";
+import { getCollection } from "@/lib/mongodb";
 import AppearanceClient from "./AppearanceClient";
 
 export default async function AppearancePage(props: { searchParams: Promise<{ page?: string }> }) {
@@ -13,18 +11,24 @@ export default async function AppearancePage(props: { searchParams: Promise<{ pa
     const user = await stackServerApp.getUser();
     if (!user) return redirect("/dashboard");
 
-    const page = await db.select().from(pages).where(and(eq(pages.id, pageId), eq(pages.userId, user.id))).get();
+    const pages = await getCollection("pages");
+    const page = await pages.findOne({ id: pageId, userId: user.id });
     if (!page) return redirect("/dashboard");
 
-    const pageLinks = await db.select().from(links).where(eq(links.pageId, pageId)).orderBy(links.order).all();
+    const linksCollection = await getCollection("links");
+    const pageLinks = await linksCollection.find({ pageId: pageId }).sort({ order: 1 }).toArray();
+
+    const sanitizedLinks = pageLinks.map((l) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const link = l as any;
+        return {
+            id: link.id as string,
+            title: link.title as string,
+            url: link.url as string,
+            isActive: (link.isActive ?? true) as boolean
+        };
+    });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const sanitizedLinks = pageLinks.map((l: any) => ({
-        id: l.id,
-        title: l.title,
-        url: l.url,
-        isActive: l.isActive ?? true
-    }));
-
-    return <AppearanceClient initialPage={page} initialLinks={sanitizedLinks} />;
+    return <AppearanceClient initialPage={page as any} initialLinks={sanitizedLinks} />;
 }

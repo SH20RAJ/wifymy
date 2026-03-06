@@ -1,58 +1,55 @@
 'use server';
 
-import { db } from "@/db";
-import { analytics, pages, links } from "@/db/schema";
+import { getCollection } from "@/lib/mongodb";
 import { stackServerApp } from "@/stack/server";
-import { eq, and, sql, desc, inArray } from "drizzle-orm";
+
+export interface MongoAnalytics {
+    id: string;
+    pageId: string;
+    linkId?: string;
+    type: 'VIEW' | 'CLICK';
+    userAgent?: string;
+    referrer?: string;
+    deviceType?: string;
+    createdAt: Date;
+}
 
 export async function getAnalyticsSummary(pageId: string) {
     const user = await stackServerApp.getUser();
     if (!user) throw new Error("Unauthorized");
 
-    // Verify ownership
-    const page = await db.query.pages.findFirst({
-        where: eq(pages.id, pageId)
-    });
+    const pages = await getCollection("pages");
+    const page = await pages.findOne({ id: pageId });
 
     if (!page || page.userId !== user.id) {
         throw new Error("Unauthorized page access");
     }
 
+    const analytics = await getCollection<MongoAnalytics>("analytics");
+
     // Get total views
-    const totalViewsQuery = await db.select({ count: sql<number>`count(*)` })
-        .from(analytics)
-        .where(and(eq(analytics.pageId, pageId), eq(analytics.type, 'VIEW')));
+    const totalViews = await analytics.countDocuments({ pageId: pageId, type: 'VIEW' });
     
     // Get total clicks
-    const totalClicksQuery = await db.select({ count: sql<number>`count(*)` })
-        .from(analytics)
-        .where(and(eq(analytics.pageId, pageId), eq(analytics.type, 'CLICK'))) as unknown as { count: number }[];
+    const totalClicks = await analytics.countDocuments({ pageId: pageId, type: 'CLICK' });
 
     // Get top links
-    const topLinksQuery = await db.select({
-        linkId: analytics.linkId,
-        clicks: sql<number>`count(*)`
-    })
-    .from(analytics)
-    .where(and(eq(analytics.pageId, pageId), eq(analytics.type, 'CLICK'), sql`${analytics.linkId} IS NOT NULL`))
-    .groupBy(analytics.linkId)
-    .orderBy(desc(sql`count(*)`))
-    .limit(5);
+    const topLinksStats = await analytics.aggregate([
+        { $match: { pageId: pageId, type: 'CLICK', linkId: { $ne: null } } },
+        { $group: { _id: "$linkId", clicks: { $sum: 1 } } },
+        { $sort: { clicks: -1 } },
+        { $limit: 5 }
+    ]).toArray();
 
-    // Fetch link titles for the top links
     const topLinksData = [];
-    if (topLinksQuery.length > 0) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const linkIds = topLinksQuery.map((l: any) => l.linkId as string);
-        const linkDetails = await db.select({ id: links.id, title: links.title }).from(links).where(inArray(links.id, linkIds));
-        
-        for (const stat of topLinksQuery) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const detail = (linkDetails as any[]).find((l: any) => l.id === stat.linkId);
-            if (detail) {
+    if (topLinksStats.length > 0) {
+        const linksCollection = await getCollection("links");
+        for (const stat of topLinksStats) {
+            const linkDetail = await linksCollection.findOne({ id: stat._id });
+            if (linkDetail) {
                 topLinksData.push({
-                    id: detail.id,
-                    title: detail.title,
+                    id: linkDetail.id,
+                    title: linkDetail.title,
                     clicks: stat.clicks
                 });
             }
@@ -60,18 +57,29 @@ export async function getAnalyticsSummary(pageId: string) {
     }
 
     // Device breakdown
-    const devicesQuery = await db.select({
-        deviceType: analytics.deviceType,
-        count: sql<number>`count(*)`
-    })
-    .from(analytics)
-    .where(eq(analytics.pageId, pageId))
-    .groupBy(analytics.deviceType) as unknown as { deviceType: string | null, count: number }[];
+    const devicesQuery = await analytics.aggregate([
+        { $match: { pageId: pageId } },
+        { $group: { _id: "$deviceType", count: { $sum: 1 } } }
+    ]).toArray();
+
+    const deviceBreakdown = devicesQuery.map(d => ({
+        deviceType: d._id,
+        count: d.count
+    }));
 
     return {
-        totalViews: totalViewsQuery[0].count,
-        totalClicks: totalClicksQuery[0].count,
+        totalViews,
+        totalClicks,
         topLinks: topLinksData,
-        deviceBreakdown: devicesQuery
+        deviceBreakdown
     };
+}
+
+export async function trackEvent(data: { pageId: string, linkId?: string, type: 'VIEW' | 'CLICK', userAgent?: string, referrer?: string, deviceType?: string }) {
+    const analytics = await getCollection<MongoAnalytics>("analytics");
+    await analytics.insertOne({
+        id: crypto.randomUUID(),
+        ...data,
+        createdAt: new Date()
+    });
 }

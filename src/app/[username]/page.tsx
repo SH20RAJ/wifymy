@@ -3,9 +3,7 @@ import { ExternalLink, Zap } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { getTheme } from "@/lib/themes";
-import { db } from "@/db";
-import { pages, links } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { getCollection } from "@/lib/mongodb";
 import { AnalyticsTracker } from "@/components/AnalyticsTracker";
 import { TrackedLink } from "@/components/TrackedLink";
 import { ThemeEffects } from "@/components/ThemeEffects";
@@ -22,18 +20,21 @@ export default async function PublicProfilePage({
 		notFound();
 	}
 
-    // Fetch page by slug
-    const page = await db.select().from(pages).where(eq(pages.slug, username)).get();
+    // Fetch page by slug from MongoDB
+    const pages = await getCollection("pages");
+    const page = await pages.findOne({ slug: username });
     if (!page) {
         notFound();
     }
 
-    // Fetch active links
-    const pageLinks = await db.select().from(links).where(eq(links.pageId, page.id)).orderBy(links.order).all();
+    // Fetch active links from MongoDB
+    const linksCollection = await getCollection("links");
+    const pageLinks = await linksCollection.find({ pageId: page.id }).sort({ order: 1 }).toArray();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const activeLinks = pageLinks.filter((l: any) => l.isActive);
+    const activeLinks = pageLinks.filter((l) => (l as any).isActive);
 
-    const theme = getTheme(page.themeId || "minimalist");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const theme = getTheme((page as any).themeId || "minimalist");
 
 	return (
 		<div 

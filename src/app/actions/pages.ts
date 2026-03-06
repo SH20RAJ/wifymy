@@ -1,18 +1,35 @@
 'use server';
 
-import { db } from "@/db";
-import { pages, users } from "@/db/schema";
+import { getCollection } from "@/lib/mongodb";
 import { stackServerApp } from "@/stack/server";
-import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
-// Sync user to db if they don't exist
+export interface MongoUser {
+    id: string;
+    email: string;
+    createdAt: Date;
+}
+
+export interface MongoPage {
+    id: string; // UUID or ObjectId as string
+    userId: string;
+    slug: string;
+    displayName?: string;
+    bio?: string;
+    avatarUrl?: string;
+    themeId: string;
+    createdAt: Date;
+}
+
+// Sync user to MongoDB if they don't exist
 async function syncUser(userId: string, email: string) {
-    const existingUser = await db.select().from(users).where(eq(users.id, userId)).get();
+    const users = await getCollection<MongoUser>("users");
+    const existingUser = await users.findOne({ id: userId });
     if (!existingUser) {
-        await db.insert(users).values({
+        await users.insertOne({
             id: userId,
             email: email,
+            createdAt: new Date(),
         });
     }
 }
@@ -23,7 +40,8 @@ export async function getUserPages() {
 
     await syncUser(user.id, user.primaryEmail || "");
 
-    return await db.select().from(pages).where(eq(pages.userId, user.id)).all();
+    const pages = await getCollection<MongoPage>("pages");
+    return await pages.find({ userId: user.id }).toArray();
 }
 
 export async function createPage(slug: string, displayName: string) {
@@ -32,21 +50,28 @@ export async function createPage(slug: string, displayName: string) {
 
     await syncUser(user.id, user.primaryEmail || "");
 
-    // Basic slug validation
     const cleanSlug = slug.toLowerCase().replace(/[^a-z0-9-]/g, '-');
+    const pages = await getCollection<MongoPage>("pages");
+
+    // Check if slug exists
+    const existing = await pages.findOne({ slug: cleanSlug });
+    if (existing) {
+        return { success: false, error: "Slug already taken." };
+    }
 
     try {
-        await db.insert(pages).values({
+        await pages.insertOne({
             id: crypto.randomUUID(),
             userId: user.id,
             slug: cleanSlug,
             displayName,
-            themeId: "minimalist"
+            themeId: "minimalist",
+            createdAt: new Date(),
         });
         revalidatePath("/dashboard");
         return { success: true, slug: cleanSlug };
     } catch {
-        return { success: false, error: "Slug already taken or invalid." };
+        return { success: false, error: "Error creating page." };
     }
 }
 
@@ -54,24 +79,24 @@ export async function updatePageProfile(pageId: string, data: { displayName?: st
     const user = await stackServerApp.getUser();
     if (!user) throw new Error("Unauthorized");
 
-    await db.update(pages)
-        .set({
-            ...data,
-            // Assuming we only update what is passed
-        })
-        .where(and(eq(pages.id, pageId), eq(pages.userId, user.id)));
+    const pages = await getCollection<MongoPage>("pages");
+    await pages.updateOne(
+        { id: pageId, userId: user.id },
+        { $set: { ...data } }
+    );
 
     revalidatePath("/dashboard");
-    revalidatePath(`/${pageId}`); // Actually we'd need slug, but we'll revalidate all
 }
 
 export async function updatePageTheme(pageId: string, themeId: string) {
     const user = await stackServerApp.getUser();
     if (!user) throw new Error("Unauthorized");
 
-    await db.update(pages)
-        .set({ themeId })
-        .where(and(eq(pages.id, pageId), eq(pages.userId, user.id)));
+    const pages = await getCollection<MongoPage>("pages");
+    await pages.updateOne(
+        { id: pageId, userId: user.id },
+        { $set: { themeId } }
+    );
 
     revalidatePath("/dashboard");
 }

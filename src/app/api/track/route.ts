@@ -1,11 +1,10 @@
-import { db } from "@/db";
-import { analytics } from "@/db/schema";
+import { getCollection } from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
 
 interface TrackBody {
     pageId: string;
     linkId?: string;
-    type: string;
+    type: 'VIEW' | 'CLICK';
     deviceType?: string;
 }
 
@@ -18,18 +17,19 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
         }
 
-        // Get basic user agent and referrer from headers
-        const userAgent = req.headers.get("user-agent")?.substring(0, 255) || "Unknown";
-        const referrer = req.headers.get("referer")?.substring(0, 255) || "Direct";
+        const userAgent = (req.headers.get("user-agent") || "Unknown").substring(0, 255);
+        const referrer = (req.headers.get("referer") || "Direct").substring(0, 255);
 
-        await db.insert(analytics).values({
+        const analytics = await getCollection("analytics");
+        await analytics.insertOne({
             id: crypto.randomUUID(),
             pageId,
             linkId: linkId || null,
-            type, // "VIEW" or "CLICK"
+            type,
             userAgent,
             referrer,
-            deviceType: deviceType || "Unknown"
+            deviceType: deviceType || "Unknown",
+            createdAt: new Date()
         });
 
         return NextResponse.json({ success: true });
