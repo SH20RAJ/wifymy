@@ -20,6 +20,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { addLink, updateLink, deleteLink, reorderLinks } from '@/app/actions/links';
 
 type LinkItem = {
     id: string;
@@ -29,7 +30,7 @@ type LinkItem = {
 };
 
 // Sortable Item Component
-function SortableLink({ id, link, onRemove, onUpdate }: { id: string, link: LinkItem, onRemove: (id: string) => void, onUpdate: (id: string, data: Partial<LinkItem>) => void }) {
+function SortableLink({ id, link, onRemove, onUpdate }: { id: string, link: LinkItem, onRemove: (id: string) => void | Promise<void>, onUpdate: (id: string, data: Partial<LinkItem>) => void | Promise<void> }) {
   const {
     attributes,
     listeners,
@@ -80,13 +81,16 @@ function SortableLink({ id, link, onRemove, onUpdate }: { id: string, link: Link
 }
 
 export function LinkEditor({ 
+  pageId,
   initialLinks, 
   onChange 
 }: { 
+  pageId: string,
   initialLinks: LinkItem[], 
   onChange: (links: LinkItem[]) => void 
 }) {
   const [items, setItems] = useState(initialLinks);
+  const [isSaving, setIsSaving] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -95,43 +99,58 @@ export function LinkEditor({
     })
   );
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      setItems((items) => {
-        const oldIndex = items.findIndex((i) => i.id === active.id);
-        const newIndex = items.findIndex((i) => i.id === over.id);
-        const newArray = arrayMove(items, oldIndex, newIndex);
-        onChange(newArray);
-        return newArray;
-      });
+      const oldIndex = items.findIndex((i) => i.id === active.id);
+      const newIndex = items.findIndex((i) => i.id === over.id);
+      const newArray = arrayMove(items, oldIndex, newIndex);
+      
+      setItems(newArray);
+      onChange(newArray);
+      
+      setIsSaving(true);
+      await reorderLinks(pageId, newArray.map(l => l.id));
+      setIsSaving(false);
     }
   };
 
-  const addLink = () => {
-      const newLink = { id: Date.now().toString(), title: '', url: '', isActive: true };
-      const newItems = [newLink, ...items];
-      setItems(newItems);
-      onChange(newItems);
+  const handleAddLink = async () => {
+      const newTitle = "New Link";
+      const newUrl = "https://";
+      
+      setIsSaving(true);
+      await addLink(pageId, newTitle, newUrl);
+      // We rely on server action revalidating path to fetch new links
+      // But we could also do optimistic UI. For now, we'll reload instead to get exact ID.
+      setIsSaving(false);
+      window.location.reload(); 
   }
 
-  const removeLink = (id: string) => {
+  const handleRemoveLink = async (id: string) => {
       const newItems = items.filter(i => i.id !== id);
       setItems(newItems);
       onChange(newItems);
+      
+      setIsSaving(true);
+      await deleteLink(id);
+      setIsSaving(false);
   }
 
-  const updateLink = (id: string, data: Partial<LinkItem>) => {
+  const handleUpdateLink = async (id: string, data: Partial<LinkItem>) => {
       const newItems = items.map(i => i.id === id ? { ...i, ...data } : i);
       setItems(newItems);
       onChange(newItems);
+      
+      // Debounced or direct save (doing direct for simplicity)
+      await updateLink(id, data);
   }
 
   return (
     <div className="space-y-6">
-      <Button onClick={addLink} className="w-full h-12 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 text-base font-semibold shadow-sm">
-          <Plus className="w-5 h-5 mr-2" /> Add New Link
+      <Button onClick={() => { handleAddLink().catch(console.error); }} disabled={isSaving} className="w-full h-12 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 text-base font-semibold shadow-sm">
+          <Plus className="w-5 h-5 mr-2" /> {isSaving ? "Saving..." : "Add New Link"}
       </Button>
 
       {items.length === 0 ? (
@@ -152,7 +171,7 @@ export function LinkEditor({
               strategy={verticalListSortingStrategy}
             >
               {items.map(link => (
-                <SortableLink key={link.id} id={link.id} link={link} onRemove={removeLink} onUpdate={updateLink} />
+                <SortableLink key={link.id} id={link.id} link={link} onRemove={handleRemoveLink} onUpdate={handleUpdateLink} />
               ))}
             </SortableContext>
           </DndContext>

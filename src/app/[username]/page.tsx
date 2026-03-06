@@ -3,20 +3,9 @@ import { ExternalLink, Zap } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { getTheme } from "@/lib/themes";
-
-// In a real app, this data would come from Drizzle ORM
-// const userProfile = await db.query.users.findFirst({ where: eq(users.username, params.username) });
-const mockProfile = {
-	displayName: "John Doe",
-	bio: "Digital creator and developer building the future of the web.",
-	avatarUrl: null,
-	theme: "minimalist", // later fetched from DB
-	links: [
-		{ id: "1", title: "Follow me on X", url: "https://x.com", icon: "x" },
-		{ id: "2", title: "My GitHub", url: "https://github.com", icon: "github" },
-		{ id: "3", title: "Watch my tutorials", url: "https://youtube.com", icon: "youtube" },
-	]
-};
+import { db } from "@/db";
+import { pages, links } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 export default async function PublicProfilePage({
 	params,
@@ -29,7 +18,17 @@ export default async function PublicProfilePage({
 		notFound();
 	}
 
-    const theme = getTheme(mockProfile.theme);
+    // Fetch page by slug
+    const page = await db.select().from(pages).where(eq(pages.slug, username)).get();
+    if (!page) {
+        notFound();
+    }
+
+    // Fetch active links
+    const pageLinks = await db.select().from(links).where(eq(links.pageId, page.id)).orderBy(links.order).all();
+    const activeLinks = pageLinks.filter(l => l.isActive);
+
+    const theme = getTheme(page.themeId || "minimalist");
 
 	return (
 		<div 
@@ -56,22 +55,22 @@ export default async function PublicProfilePage({
                         className="w-24 h-24 rounded-full flex items-center justify-center overflow-hidden border-[length:inherit]"
                         style={{ backgroundColor: 'var(--theme-card)', borderColor: 'var(--theme-border)' }}
                     >
-						{mockProfile.avatarUrl ? (
+						{page.avatarUrl ? (
 							// eslint-disable-next-line @next/next/no-img-element
-							<img src={mockProfile.avatarUrl} alt={mockProfile.displayName} className="w-full h-full object-cover" />
+							<img src={page.avatarUrl} alt={page.displayName || page.slug} className="w-full h-full object-cover" />
 						) : (
-							<span className="text-3xl font-bold" style={{ color: 'var(--theme-muted)' }}>{mockProfile.displayName[0]}</span>
+							<span className="text-3xl font-bold" style={{ color: 'var(--theme-muted)' }}>{(page.displayName?.[0] || page.slug[0]).toUpperCase()}</span>
 						)}
 					</div>
 					<div>
-						<h1 className="text-2xl font-bold tracking-tight">{mockProfile.displayName}</h1>
-						<p className="text-md mt-2 max-w-sm mx-auto leading-relaxed" style={{ color: 'var(--theme-muted)' }}>{mockProfile.bio}</p>
+						<h1 className="text-2xl font-bold tracking-tight">{page.displayName || `@${page.slug}`}</h1>
+						<p className="text-md mt-2 max-w-sm mx-auto leading-relaxed" style={{ color: 'var(--theme-muted)' }}>{page.bio}</p>
 					</div>
 				</div>
 
 				{/* Links Container */}
 				<div className="flex flex-col gap-4 w-full">
-					{mockProfile.links.map((link) => (
+					{activeLinks.map((link) => (
 						<a 
 							key={link.id} 
 							href={link.url}

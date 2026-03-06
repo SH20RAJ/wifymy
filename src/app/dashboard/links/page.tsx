@@ -1,34 +1,29 @@
-'use client';
+import { db } from "@/db";
+import { pages, links } from "@/db/schema";
+import { eq, and } from "drizzle-orm";
+import { redirect } from "next/navigation";
+import { stackServerApp } from "@/stack/server";
+import LinksClient from "./LinksClient";
 
-import { useState } from "react";
-import { LinkEditor } from "@/components/dashboard/LinkEditor";
-import { MobilePreview } from "@/components/dashboard/MobilePreview";
+export default async function LinksPage(props: { searchParams: Promise<{ page?: string }> }) {
+    const searchParams = await props.searchParams;
+    const pageId = searchParams.page;
+    if (!pageId) return redirect("/dashboard");
 
-const initialLinks = [
-    { id: "1", title: "Follow me on Instagram", url: "https://instagram.com", isActive: true },
-    { id: "2", title: "My GitHub Projects", url: "https://github.com", isActive: true },
-];
+    const user = await stackServerApp.getUser();
+    if (!user) return redirect("/dashboard");
 
-export default function LinksPage() {
-    const [links, setLinks] = useState(initialLinks);
+    const page = await db.select().from(pages).where(and(eq(pages.id, pageId), eq(pages.userId, user.id))).get();
+    if (!page) return redirect("/dashboard");
 
-    // Profile mock for preview
-    const profile = {
-        displayName: "John Doe",
-        bio: "Digital creator and developer building the future of the web.",
-        avatarUrl: null
-    };
+    const pageLinks = await db.select().from(links).where(eq(links.pageId, pageId)).orderBy(links.order).all();
 
-    return (
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8 max-w-6xl items-start">
-            <div className="max-w-3xl w-full">
-                <h1 className="text-3xl font-bold mb-8">Manage Links</h1>
-                <LinkEditor initialLinks={links} onChange={setLinks} />
-            </div>
+    const sanitizedLinks = pageLinks.map(l => ({
+        id: l.id,
+        title: l.title,
+        url: l.url,
+        isActive: l.isActive ?? true
+    }));
 
-            <div className="hidden lg:flex sticky top-8 justify-center pb-8">
-                <MobilePreview profile={profile} links={links.filter(l => l.isActive)} themeId="minimalist" />
-            </div>
-        </div>
-    );
+    return <LinksClient initialPage={page} initialLinks={sanitizedLinks} />;
 }

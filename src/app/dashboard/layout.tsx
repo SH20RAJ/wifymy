@@ -1,6 +1,6 @@
 import { UserButton } from "@stackframe/stack";
-import Link from "next/link";
-import { Zap, UserCircle, Link as LinkIcon, Palette } from "lucide-react";
+import { Zap } from "lucide-react";
+import DashboardNav from "@/components/dashboard/DashboardNav";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -12,24 +12,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 			<span>Wify.my</span>
 		</div>
 
-        <nav className="flex flex-row md:flex-col gap-2 overflow-x-auto pb-2 md:pb-0">
-          <Link href="/dashboard" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-secondary transition-colors text-sm font-medium">
-            <Zap className="w-5 h-5 text-muted-foreground" />
-            Overview
-          </Link>
-          <Link href="/dashboard/links" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-secondary transition-colors text-sm font-medium">
-            <LinkIcon className="w-5 h-5 text-muted-foreground" />
-            Links
-          </Link>
-          <Link href="/dashboard/appearance" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-secondary transition-colors text-sm font-medium">
-            <Palette className="w-5 h-5 text-muted-foreground" />
-            Appearance
-          </Link>
-          <Link href="/dashboard/profile" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-secondary transition-colors text-sm font-medium">
-            <UserCircle className="w-5 h-5 text-muted-foreground" />
-            Profile Settings
-          </Link>
-        </nav>
+        <DashboardNav />
 
         <div className="mt-auto hidden md:flex items-center gap-3 px-4 py-3">
             <UserButton />
