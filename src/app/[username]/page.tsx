@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
-import { Instagram, Youtube, Linkedin, ExternalLink, Zap } from "lucide-react";
+import { ExternalLink, Zap } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { getTheme } from "@/lib/themes";
 
 // In a real app, this data would come from Drizzle ORM
 // const userProfile = await db.query.users.findFirst({ where: eq(users.username, params.username) });
@@ -24,30 +25,47 @@ export default async function PublicProfilePage({
 }) {
     const { username } = await params;
 
-	// Mock check
 	if (!username) {
 		notFound();
 	}
 
+    const theme = getTheme(mockProfile.theme);
+
 	return (
-		<div className="min-h-[100dvh] flex flex-col pt-16 pb-8 px-4 sm:px-6 bg-background text-foreground relative selection:bg-primary selection:text-primary-foreground">
+		<div 
+            className="min-h-dvh flex flex-col pt-16 pb-8 px-4 sm:px-6 relative selection:bg-black selection:text-white"
+            style={{
+                background: theme.style.background,
+                color: theme.style.text,
+                fontFamily: theme.style.fontFamily,
+                '--theme-muted': theme.style.textMuted,
+                '--theme-card': theme.style.card,
+                '--theme-border': theme.style.cardBorder,
+                '--theme-btn': theme.style.button,
+                '--theme-btn-text': theme.style.buttonText,
+                '--theme-btn-hover': theme.style.buttonHover,
+            } as React.CSSProperties}
+        >
 			{/* Decorative Theme Elements */}
-			<div className="absolute top-0 right-0 w-[600px] h-[600px] bg-secondary/60 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 opacity-50 pointer-events-none" />
+			<div className="absolute top-0 right-0 w-[600px] h-[600px] bg-white/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 opacity-50 pointer-events-none" />
 			
 			<div className="max-w-[680px] w-full mx-auto relative z-10 flex-1 flex flex-col">
 				{/* Profile Header */}
 				<div className="flex flex-col items-center text-center space-y-4 mb-10">
-					<div className="w-24 h-24 rounded-full bg-secondary border border-border shadow-sm flex items-center justify-center overflow-hidden">
+					<div 
+                        className="w-24 h-24 rounded-full flex items-center justify-center overflow-hidden border-[length:inherit]"
+                        style={{ backgroundColor: 'var(--theme-card)', borderColor: 'var(--theme-border)' }}
+                    >
 						{mockProfile.avatarUrl ? (
 							// eslint-disable-next-line @next/next/no-img-element
 							<img src={mockProfile.avatarUrl} alt={mockProfile.displayName} className="w-full h-full object-cover" />
 						) : (
-							<span className="text-3xl font-bold text-muted-foreground">{mockProfile.displayName[0]}</span>
+							<span className="text-3xl font-bold" style={{ color: 'var(--theme-muted)' }}>{mockProfile.displayName[0]}</span>
 						)}
 					</div>
 					<div>
 						<h1 className="text-2xl font-bold tracking-tight">{mockProfile.displayName}</h1>
-						<p className="text-md text-muted-foreground mt-2 max-w-sm mx-auto leading-relaxed">{mockProfile.bio}</p>
+						<p className="text-md mt-2 max-w-sm mx-auto leading-relaxed" style={{ color: 'var(--theme-muted)' }}>{mockProfile.bio}</p>
 					</div>
 				</div>
 
@@ -60,18 +78,23 @@ export default async function PublicProfilePage({
 							target="_blank"
 							rel="noopener noreferrer"
 							className={cn(
-								"group relative flex items-center justify-between p-4 px-6 rounded-2xl border border-border bg-card shadow-sm hover:scale-[1.02] transition-all duration-300",
-								"hover:border-primary/50 hover:shadow-md"
+								"group relative flex items-center justify-between p-4 px-6 rounded-2xl shadow-sm hover:scale-[1.02] transition-all duration-300 border-[length:inherit]"
 							)}
+                            style={{
+                                backgroundColor: 'var(--theme-card)',
+                                borderColor: 'var(--theme-border)',
+                            }}
 						>
 							<div className="flex items-center gap-4">
-								<div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-									{/* Placeholder for matched icons based on link.icon */}
-									<ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
+								<div 
+                                    className="w-10 h-10 rounded-full flex items-center justify-center transition-colors"
+                                    style={{ backgroundColor: theme.type === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }}
+                                >
+									<ExternalLink className="w-4 h-4" style={{ color: 'var(--theme-muted)' }} />
 								</div>
 								<span className="font-semibold text-[15px]">{link.title}</span>
 							</div>
-							<div className="text-muted-foreground opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all">
+							<div className="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all font-bold">
 								<ArrowUpRightIcon />
 							</div>
 						</a>
@@ -80,8 +103,16 @@ export default async function PublicProfilePage({
 
 				{/* Footer Branding */}
 				<div className="mt-auto pt-16 flex justify-center">
-					<Link href="/" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary hover:bg-secondary/80 text-xs font-semibold tracking-wide text-muted-foreground hover:text-foreground transition-colors border border-border/50">
-						<Zap className="w-3.5 h-3.5" /> Made with Wify
+					<Link 
+                        href="/" 
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-colors border-[length:inherit]"
+                        style={{
+                            backgroundColor: 'var(--theme-card)',
+                            borderColor: 'var(--theme-border)',
+                            color: 'var(--theme-muted)'
+                        }}
+                    >
+						<Zap className="w-3.5 h-3.5 fill-current" /> Made with Wify
 					</Link>
 				</div>
 			</div>

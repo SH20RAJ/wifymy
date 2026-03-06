@@ -142,7 +142,7 @@ export function SupportedPlatforms() {
                         <div 
                             key={platform.name}
                             className={cn(
-                                "group relative flex flex-col items-center justify-center p-6 md:p-8 rounded-[1.5rem] border border-border bg-background transition-all duration-300 hover:scale-[1.03] cursor-default text-muted-foreground shadow-sm",
+                                "group relative flex flex-col items-center justify-center p-6 md:p-8 rounded-2xl border border-border bg-background transition-all duration-300 hover:scale-[1.03] cursor-default text-muted-foreground shadow-sm",
                                 platform.bgHover,
                                 platform.color
                             )}
