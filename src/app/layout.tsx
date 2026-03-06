@@ -62,13 +62,20 @@ export const metadata: Metadata = {
 	},
 };
 
+import { Outfit } from 'next/font/google';
+
+const outfit = Outfit({
+	subsets: ['latin'],
+	variable: '--font-outfit',
+});
+
 export default function RootLayout({
 	children,
 }: Readonly<{
 	children: React.ReactNode;
 }>) {
 	return (
-		<html lang="en">
+		<html lang="en" className={`${outfit.variable} antialiased`}>
 			<head>
 				<link rel="icon" href="/favicon.ico" sizes="any" />
 			</head>
