@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import { StackProvider, StackTheme } from "@stackframe/stack";
+import { stackClientApp } from "../stack/client";
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -80,7 +82,7 @@ export default function RootLayout({
 			<head>
 				<link rel="icon" href="/favicon.ico" sizes="any" />
 			</head>
-			<body>
+			<body><StackProvider app={stackClientApp}><StackTheme>
 				<ThemeProvider
 					attribute="class"
 					defaultTheme="system"
@@ -89,7 +91,7 @@ export default function RootLayout({
 				>
 					{children}
 				</ThemeProvider>
-			</body>
+			</StackTheme></StackProvider></body>
 		</html>
 	);
 }
