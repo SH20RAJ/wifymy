@@ -1,395 +1,253 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { generateLinks } from "@/lib/deep-links";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  Copy,
-  Check,
-  ArrowRight,
-  ShieldCheck,
-  Zap,
-  Lock,
-  ExternalLink,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { SupportedPlatforms } from "@/components/SupportedPlatforms";
+import { useState } from 'react';
+import { generateLinks } from '@/lib/deep-links';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Copy, Check, ArrowUpRight, Zap, ArrowRight, ShieldCheck, Lock, Smartphone } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { SupportedPlatforms } from '@/components/SupportedPlatforms';
 
 export default function Home() {
-  const [inputUrl, setInputUrl] = useState("");
-  const [generatedLink, setGeneratedLink] = useState("");
-  const [error, setError] = useState("");
-  const [copied, setCopied] = useState(false);
+	const [inputUrl, setInputUrl] = useState('');
+	const [generatedLink, setGeneratedLink] = useState('');
+	const [error, setError] = useState('');
+	const [copied, setCopied] = useState(false);
 
-  const handleGenerate = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setGeneratedLink("");
-    setCopied(false);
+	const handleGenerate = (e: React.FormEvent) => {
+		e.preventDefault();
+		setError('');
+		setGeneratedLink('');
+		setCopied(false);
 
-    if (!inputUrl.trim()) return;
+		if (!inputUrl.trim()) return;
 
-    const data = generateLinks(inputUrl);
+		const data = generateLinks(inputUrl);
 
-    if (data.platform === "unknown") {
-      setError(
-        "Unsupported link or username format. Please try a full URL or @username.",
-      );
-      return;
-    }
+		if (data.platform === 'unknown') {
+			setError('Unsupported link format. Try a full URL.');
+			return;
+		}
 
-    const cleanOriginal = data.originalUrl
-      .replace(/^https?:\/\//, "")
-      .replace(/^www\./, "");
-    const origin =
-      typeof window !== "undefined"
-        ? window.location.origin
-        : "https://wify.my";
+		const cleanOriginal = data.originalUrl.replace(/^https?:\/\//, '').replace(/^www\./, '');
+		const origin = typeof window !== 'undefined' ? window.location.origin : 'https://wify.my';
 
-    setGeneratedLink(`${origin}/l/${cleanOriginal}`);
-  };
+		setGeneratedLink(`${origin}/l/${cleanOriginal}`);
+	};
 
-  const copyToClipboard = () => {
-    if (!generatedLink) return;
-    navigator.clipboard.writeText(generatedLink);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+	const copyToClipboard = () => {
+		if (!generatedLink) return;
+		navigator.clipboard.writeText(generatedLink);
+		setCopied(true);
+		setTimeout(() => setCopied(false), 2000);
+	};
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    name: "Wify",
-    applicationCategory: "UtilityApplication",
-    operatingSystem: "Any",
-    offers: {
-      "@type": "Offer",
-      price: "0",
-      priceCurrency: "USD",
-    },
-    description:
-      "Generate smart links that open Instagram, YouTube, TikTok, and Telegram directly in their apps.",
-    featureList: "Deep linking, Social Media App Opener, No Login, No Tracking",
-  };
+	return (
+		<div className="min-h-screen font-sans selection:bg-primary selection:text-primary-foreground">
+			{/* Navbar */}
+			<nav className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-5xl">
+				<div className="bg-card text-card-foreground rounded-full px-6 py-4 flex items-center justify-between shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-border/50">
+					<div className="flex items-center gap-2 font-bold text-xl tracking-tight">
+						<Zap className="h-5 w-5 fill-foreground" />
+						<span>Wify.my</span>
+					</div>
+					<div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
+						<a href="#features" className="hover:text-foreground transition-colors">Features</a>
+						<a href="#why" className="hover:text-foreground transition-colors">Why Wify</a>
+						<a href="#platforms" className="hover:text-foreground transition-colors">Platforms</a>
+					</div>
+					<div className="flex items-center gap-4">
+						<a href="https://tally.so/r/7RKqRZ" target="_blank" rel="noopener noreferrer">
+							<Button variant="default" className="rounded-full px-6 font-semibold bg-primary text-primary-foreground hover:bg-primary/90 h-10 shadow-sm">
+								Join Waitlist <ArrowUpRight className="ml-1 h-4 w-4" />
+							</Button>
+						</a>
+					</div>
+				</div>
+			</nav>
 
-  return (
-    <div className="min-h-screen bg-white text-gray-900 dark:bg-[#09090b] dark:text-gray-100 font-sans selection:bg-blue-500/30 selection:text-current transition-colors">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+			<main className="pt-32 pb-32 px-4 max-w-7xl mx-auto space-y-6">
+				{/* Hero Section Container */}
+				<section className="relative rounded-[2.5rem] bg-card overflow-hidden shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] border border-border">
+					{/* Abstract Background Elements matching Lattice/Trvvrat */}
+					<div className="absolute top-0 right-0 w-[800px] h-[800px] bg-secondary/60 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 opacity-70 pointer-events-none" />
+					<div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-secondary/80 rounded-full blur-[80px] translate-y-1/3 -translate-x-1/4 opacity-60 pointer-events-none" />
 
-      {/* Header */}
-      <nav className="sticky top-0 z-50 glass border-b border-gray-200/50 dark:border-white/5">
-        <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2 font-bold text-xl tracking-tighter">
-            <Zap className="h-5 w-5 text-blue-500 fill-blue-500" />
-            <span>Wify.my</span>
-          </div>
-          <div className="hidden sm:flex gap-8 text-sm font-medium text-gray-500 dark:text-gray-400">
-            <a
-              href="#features"
-              className="hover:text-gray-900 dark:hover:text-white transition-colors"
-            >
-              Features
-            </a>
-            <a
-              href="#why"
-              className="hover:text-gray-900 dark:hover:text-white transition-colors"
-            >
-              Why Wify
-            </a>
-          </div>
-          <a
-            href="https://tally.so/r/7RKqRZ"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Button
-              variant="outline"
-              size="sm"
-              className="rounded-full px-5 text-xs font-semibold"
-            >
-              Join Waitlist
-            </Button>
-          </a>
-        </div>
-      </nav>
+					<div className="relative pt-32 pb-40 px-6 sm:px-12 md:px-20 lg:px-32 text-center flex flex-col items-center">
+						<div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-background text-xs font-bold text-foreground border border-border tracking-widest mb-10 shadow-sm pointer-events-none">
+							<Zap className="h-3.5 w-3.5 fill-foreground" /> ZERO SETUP. INSTANT OPEN.
+						</div>
 
-      <main>
-        {/* Hero Section */}
-        <section className="relative pt-20 pb-32 overflow-hidden">
-          {/* Subtle Background Glow */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-blue-500/5 dark:bg-blue-500/10 blur-[120px] rounded-full -z-10 pointer-events-none" />
+						<h1 className="text-5xl md:text-7xl lg:text-[5.5rem] font-medium tracking-tight text-foreground leading-[1.05] max-w-4xl text-balance mb-8">
+							Open social links <span className="text-muted-foreground">directly in apps.</span>
+						</h1>
 
-          <div className="max-w-5xl mx-auto px-6 text-center space-y-8">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 text-[10px] sm:text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest animate-in fade-in slide-in-from-bottom-2 duration-700">
-              <Zap className="h-3 w-3" /> Zero Setup. Instant Open.
-            </div>
+						<p className="text-xl md:text-2xl text-muted-foreground max-w-2xl leading-relaxed mb-16 text-balance">
+							We bring ideas to life by bypassing limited inside-app browsers. Ensure your audience engages where it matters native and seamless.
+						</p>
 
-            <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-gray-950 dark:text-white text-balance leading-[1.1]">
-              Open social links <br />
-              <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-600 to-indigo-500 dark:from-blue-400 dark:to-indigo-300">
-                directly in apps
-              </span>
-            </h1>
+						{/* Generator Form styled Premium */}
+						<div className="w-full max-w-2xl relative z-10 transition-all">
+							<div className="bg-background rounded-full p-2.5 flex flex-col sm:flex-row gap-2 shadow-[0_8px_30px_rgb(0,0,0,0.08)] ring-1 ring-border/50 focus-within:ring-primary/20 focus-within:ring-2 transition-all">
+								<form onSubmit={handleGenerate} className="flex-1 flex flex-col sm:flex-row gap-2 w-full">
+									<Input
+										type="text"
+										placeholder="Paste link or @username..."
+										value={inputUrl}
+										onChange={(e) => setInputUrl(e.target.value)}
+										className="border-0 bg-transparent h-14 md:h-16 text-lg focus-visible:ring-0 shadow-none px-6 flex-1 rounded-full placeholder:text-muted-foreground"
+									/>
+									<Button type="submit" size="lg" className="h-14 md:h-16 px-8 rounded-full text-base font-semibold bg-primary text-primary-foreground hover:bg-primary/90 min-w-[160px] inline-flex items-center justify-center shadow-md">
+										Generate <ArrowRight className="ml-2 w-5 h-5" />
+									</Button>
+								</form>
+							</div>
 
-            <p className="max-w-2xl mx-auto text-lg md:text-xl text-gray-600 dark:text-gray-400 leading-relaxed text-balance">
-              Stop losing engagement. Generate smart links that bypass in-app
-              browsers and open Instagram, YouTube, and TikTok natively.
-            </p>
+							{error && (
+								<p className="mt-6 text-sm font-medium text-red-500 bg-red-50 dark:bg-red-500/10 inline-flex px-4 py-2 rounded-full absolute -bottom-16 left-1/2 -translate-x-1/2 whitespace-nowrap border border-red-100 dark:border-red-900/50">
+									{error}
+								</p>
+							)}
 
-            {/* Input Form Container */}
-            <div className="max-w-2xl mx-auto mt-12 relative group">
-              <div className="absolute -inset-1 bg-linear-to-r from-blue-500 to-indigo-600 rounded-2xl blur-xl opacity-20 group-focus-within:opacity-40 transition-opacity duration-500" />
+							{generatedLink && !error && (
+								<div className="absolute -bottom-24 left-1/2 -translate-x-1/2 w-full max-w-xl animate-in slide-in-from-top-4 fade-in duration-500">
+									<div className="bg-foreground text-background p-2 rounded-full flex items-center shadow-2xl ring-1 ring-border/10">
+										<div className="flex-1 px-6 truncate font-mono text-sm sm:text-base selection:bg-primary border-transparent selection:text-primary-foreground">
+											{generatedLink}
+										</div>
+										<Button 
+											onClick={copyToClipboard}
+											variant="secondary"
+											className={cn(
+												"rounded-full h-12 px-6 font-semibold transition-all duration-300",
+												copied ? "bg-green-500 text-white hover:bg-green-500" : "bg-card text-foreground hover:bg-secondary"
+											)}
+										>
+											{copied ? <><Check className="mr-2 h-4 w-4" /> Copied</> : <><Copy className="mr-2 h-4 w-4" /> Copy</>}
+										</Button>
+									</div>
+								</div>
+							)}
+						</div>
+					</div>
+				</section>
 
-              <div className="relative bg-white dark:bg-gray-900 border border-gray-200 dark:border-white/10 rounded-2xl p-2 shadow-2xl transition-all duration-300 focus-within:ring-2 focus-within:ring-blue-500/20">
-                <form
-                  onSubmit={handleGenerate}
-                  className="flex flex-col sm:flex-row gap-2"
-                >
-                  <div className="relative flex-1">
-                    <Input
-                      type="text"
-                      placeholder="Paste link or @username..."
-                      value={inputUrl}
-                      onChange={(e) => setInputUrl(e.target.value)}
-                      className="border-0 bg-transparent h-14 text-lg focus-visible:ring-0 shadow-none px-4"
-                    />
-                  </div>
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    size="lg"
-                    className="h-14 sm:h-14 px-10 rounded-xl text-base font-bold shadow-lg shadow-blue-500/20"
-                  >
-                    Generate <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </form>
-              </div>
+				{/* Floating Features Section (Lattice style) */}
+				<section id="features" className="py-20 lg:py-28">
+					<div className="text-center mb-16">
+						<h2 className="text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight text-foreground">
+							The help you Need,<br /> <span className="text-muted-foreground">When you Need it</span>
+						</h2>
+					</div>
+					
+					<div className="grid md:grid-cols-3 gap-6">
+						<div className="bg-card rounded-[2rem] p-10 lg:p-12 border border-border shadow-sm flex flex-col justify-between group hover:-translate-y-1 transition-transform duration-300">
+							<div className="w-16 h-16 rounded-full bg-background border border-border flex items-center justify-center mb-10 shadow-sm">
+								<ShieldCheck className="w-7 h-7 text-foreground" />
+							</div>
+							<div>
+								<h3 className="text-2xl font-medium mb-4">Privacy First</h3>
+								<p className="text-muted-foreground leading-relaxed text-lg">
+									We never log your clicks, IPs, or behavior. Your generated links are yours. No cookies, no invasive tracking.
+								</p>
+							</div>
+						</div>
+						
+						<div className="bg-card rounded-[2rem] p-10 lg:p-12 border border-border shadow-sm flex flex-col justify-between group hover:-translate-y-1 transition-transform duration-300">
+							<div className="w-16 h-16 rounded-full bg-background border border-border flex items-center justify-center mb-10 shadow-sm">
+								<Lock className="w-7 h-7 text-foreground" />
+							</div>
+							<div>
+								<h3 className="text-2xl font-medium mb-4">Zero Auth</h3>
+								<p className="text-muted-foreground leading-relaxed text-lg">
+									No accounts, no onboarding friction. Just paste, generate, and share instantly without a fuss.
+								</p>
+							</div>
+						</div>
 
-              {/* Status / Error */}
-              {error && (
-                <div className="mt-4 text-sm font-medium text-red-500 text-center animate-in fade-in slide-in-from-top-2">
-                  {error}
+						<div className="bg-card rounded-[2rem] p-10 lg:p-12 border border-border shadow-sm flex flex-col justify-between group hover:-translate-y-1 transition-transform duration-300">
+							<div className="w-16 h-16 rounded-full bg-background border border-border flex items-center justify-center mb-10 shadow-sm">
+								<Zap className="w-7 h-7 text-foreground" />
+							</div>
+							<div>
+								<h3 className="text-2xl font-medium mb-4">Edge Speed</h3>
+								<p className="text-muted-foreground leading-relaxed text-lg">
+									Built on Edge runtime for sub-millisecond redirects worldwide. True blazing fast performance.
+								</p>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				{/* Why Section - Floating Card Split */}
+				<section id="why" className="py-12">
+					<div className="bg-card rounded-[2.5rem] border border-border p-8 md:p-16 lg:p-24 shadow-sm flex flex-col lg:flex-row gap-16 lg:items-center">
+						<div className="flex-1 space-y-8">
+							<h2 className="text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight text-foreground leading-[1.05]">
+								Enhancing the Entire <br /> Engagement Cycle
+							</h2>
+							<p className="text-xl text-muted-foreground leading-relaxed max-w-xl text-balance">
+								Social apps trap users in limited in-app browsers where they aren't logged in. This kills conversions. Wify ensures users land directly in the native app safely.
+							</p>
+							<div className="pt-4">
+								<a href="https://tally.so/r/7RKqRZ" target="_blank" rel="noopener noreferrer">
+									<Button className="rounded-full h-14 px-8 text-base font-semibold bg-primary text-primary-foreground">
+										Start generating now <ArrowUpRight className="ml-2 w-5 h-5" />
+									</Button>
+								</a>
+							</div>
+						</div>
+
+						{/* Mockup/Visual side */}
+						<div className="flex-1 flex justify-center lg:justify-end">
+							<div className="w-full max-w-md bg-background rounded-[2rem] p-8 border border-border shadow-xl relative overflow-hidden">
+								<div className="absolute top-0 left-0 w-full h-1.5 bg-linear-to-r from-blue-500 to-indigo-500" />
+								<div className="absolute top-6 right-6 w-3 h-3 rounded-full bg-red-400" />
+								<div className="flex items-center gap-5 mb-10">
+									<div className="w-14 h-14 rounded-full bg-card border border-border shadow-sm flex items-center justify-center">
+										<Smartphone className="w-6 h-6" />
+									</div>
+									<div>
+										<div className="text-base font-semibold">Instagram Deep Link</div>
+										<div className="text-sm text-muted-foreground">Redirecting to app...</div>
+									</div>
+								</div>
+								<div className="space-y-4 mb-4">
+									<div className="h-5 bg-secondary rounded-full w-full" />
+									<div className="h-5 bg-secondary rounded-full w-4/5" />
+									<div className="h-5 bg-secondary rounded-full w-2/3" />
+								</div>
+								<div className="mt-12 pt-6 border-t border-border flex justify-between items-center">
+									<span className="text-sm font-medium text-muted-foreground">Opening native app</span>
+									<Check className="w-6 h-6 text-green-500" />
+								</div>
+							</div>
+						</div>
+					</div>
+				</section>
+
+                <div id="platforms" className="py-12">
+				    <SupportedPlatforms />
                 </div>
-              )}
+			</main>
 
-              {/* Result Area */}
-              {generatedLink && (
-                <div className="mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <div className="bg-blue-50/50 dark:bg-blue-500/5 border border-blue-100 dark:border-blue-500/20 p-4 rounded-2xl space-y-4 shadow-inner">
-                    <div className="flex items-center justify-between px-2">
-                      <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest">
-                        Your Smart Link
-                      </span>
-                      <a
-                        href={generatedLink}
-                        target="_blank"
-                        className="text-xs font-medium text-gray-500 hover:text-blue-500 flex items-center gap-1 transition-colors"
-                      >
-                        Preview <ExternalLink className="h-3 w-3" />
-                      </a>
-                    </div>
-                    <div className="flex items-center gap-3 bg-white dark:bg-gray-950 p-3 rounded-xl border border-gray-200 dark:border-white/10 shadow-sm">
-                      <code className="flex-1 text-base md:text-lg font-mono text-gray-800 dark:text-gray-200 truncate select-all px-2">
-                        {generatedLink}
-                      </code>
-                      <Button
-                        onClick={copyToClipboard}
-                        variant={copied ? "default" : "outline"}
-                        className={cn(
-                          "h-12 px-6 rounded-lg font-bold transition-all duration-300",
-                          copied
-                            ? "bg-green-600 hover:bg-green-600 text-white border-transparent"
-                            : "dark:border-white/10",
-                        )}
-                      >
-                        {copied ? (
-                          <>
-                            <Check className="mr-2 h-4 w-4" /> Copied
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="mr-2 h-4 w-4" /> Copy
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </section>
-
-        <SupportedPlatforms />
-
-        {/* Features / Trust Section */}
-        <section
-          id="features"
-          className="py-24 bg-gray-50 dark:bg-white/2 border-y border-gray-100 dark:border-white/5"
-        >
-          <div className="max-w-5xl mx-auto px-6">
-            <div className="grid md:grid-cols-3 gap-8">
-              <TrustCard
-                icon={<ShieldCheck className="h-6 w-6" />}
-                title="Privacy First"
-                desc="We don't log clicks, IPs, or behavior. Your links are yours. No cookies, no trackers."
-                color="blue"
-              />
-              <TrustCard
-                icon={<Lock className="h-6 w-6" />}
-                title="Zero Auth"
-                desc="No accounts, no onboarding. Just paste, generate, and share. Completely frictionless."
-                color="indigo"
-              />
-              <TrustCard
-                icon={<Zap className="h-6 w-6" />}
-                title="Blazing Fast"
-                desc="Built on Edge runtime for sub-millisecond redirects worldwide. Speed is our priority."
-                color="blue"
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* SEO / Why Content */}
-        <section id="why" className="py-32">
-          <div className="max-w-5xl mx-auto px-6">
-            <div className="max-w-3xl space-y-12">
-              <div className="space-y-4">
-                <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
-                  Why use dynamic deep links?
-                </h2>
-                <div className="h-1 w-20 bg-blue-500 rounded-full" />
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-x-16 gap-y-12">
-                <div className="space-y-6">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                    Better Conversion
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                    Social media apps are designed for engagement. When you
-                    share a standard link, it often opens in a limited in-app
-                    browser where users aren&apos;t logged in. This kills
-                    conversion.
-                    <strong> Wify</strong> ensures users land directly in their
-                    app.
-                  </p>
-                  <ul className="space-y-3 text-sm font-medium text-gray-500 dark:text-gray-400">
-                    <li className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-blue-500" /> Open Instagram
-                      links in app
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-blue-500" /> Direct YouTube
-                      app player
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-blue-500" /> Native TikTok
-                      video experience
-                    </li>
-                  </ul>
-                </div>
-
-                <div className="space-y-6">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                    Built for Growth
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                    Our <strong>deep link generator</strong> works for all major
-                    platforms. Use it for your Bio-link, newsletters, or
-                    cross-promotion. Get an <strong>Instagram deep link</strong>{" "}
-                    that works every time.
-                  </p>
-                  <p className="text-gray-600 dark:text-gray-400 leading-relaxed italic border-l-2 border-blue-500/20 pl-4">
-                    &ldquo;The simplest way to improve social CTR without adding
-                    analytics bloat.&rdquo;
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-      </main>
-
-      {/* Footer */}
-      <footer className="py-16 border-t border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-black">
-        <div className="max-w-5xl mx-auto px-6">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-8">
-            <div className="flex items-center gap-2 font-bold text-lg opacity-70">
-              <Zap className="h-4 w-4 text-blue-500 fill-blue-500" />
-              <span>Wify.my</span>
-            </div>
-            <div className="flex gap-10 text-xs font-semibold text-gray-500 uppercase tracking-widest">
-              <a href="#" className="hover:text-blue-500 transition-colors">
-                Privacy
-              </a>
-              <a href="#" className="hover:text-blue-500 transition-colors">
-                Terms
-              </a>
-              <a
-                href="https://tally.so/r/7RKqRZ"
-                target="_blank"
-                className="hover:text-blue-500 transition-colors text-blue-500"
-              >
-                Waitlist
-              </a>
-            </div>
-            <p className="text-xs text-gray-400 font-medium">
-              &copy; {new Date().getFullYear()} Wify. All rights reserved.
-            </p>
-            <a
-              href="https://visitorbadge.io/status?path=https%3A%2F%2Fwify.my%2F"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="opacity-50 hover:opacity-100 transition-opacity"
-            >
-              <img
-                src="https://api.visitorbadge.io/api/combined?path=https%3A%2F%2Fwify.my%2F&countColor=%23263759&style=flat-square"
-                alt="Visitor Badge"
-              />
-            </a>
-          </div>
-        </div>
-      </footer>
-    </div>
-  );
-}
-
-function TrustCard({
-  icon,
-  title,
-  desc,
-  color,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  desc: string;
-  color: "blue" | "indigo";
-}) {
-  return (
-    <Card className="border-0 shadow-none bg-transparent group">
-      <CardContent className="p-0 space-y-4">
-        <div
-          className={cn(
-            "w-14 h-14 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 duration-500 shadow-lg",
-            color === "blue"
-              ? "bg-blue-500 text-white shadow-blue-500/20"
-              : "bg-indigo-600 text-white shadow-indigo-500/20",
-          )}
-        >
-          {icon}
-        </div>
-        <h3 className="text-xl font-bold tracking-tight">{title}</h3>
-        <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
-          {desc}
-        </p>
-      </CardContent>
-    </Card>
-  );
+			{/* Minimal Footer */}
+			<footer className="py-12 px-6 max-w-7xl mx-auto border-t border-border">
+				<div className="flex flex-col md:flex-row items-center justify-between gap-6">
+					<div className="flex items-center gap-2 font-bold text-lg text-foreground">
+						<Zap className="h-4 w-4 fill-foreground" />
+						<span>Wify.my</span>
+					</div>
+					<div className="flex gap-8 text-sm font-medium text-muted-foreground">
+						<a href="#" className="hover:text-foreground transition-colors">Privacy</a>
+						<a href="#" className="hover:text-foreground transition-colors">Terms</a>
+						<a href="https://tally.so/r/7RKqRZ" target="_blank" className="hover:text-foreground transition-colors">Waitlist</a>
+					</div>
+					<div className="text-sm text-muted-foreground font-medium">
+						© {new Date().getFullYear()} Wify. All rights reserved.
+					</div>
+				</div>
+			</footer>
+		</div>
+	);
 }
