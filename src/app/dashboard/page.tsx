@@ -37,7 +37,8 @@ export default async function DashboardPage() {
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {pages.map((p) => (
+                            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                            {pages.map((p: any) => (
                                 <div key={p.id} className="bg-white/5 backdrop-blur-md rounded-3xl border border-white/10 p-6 shadow-xl hover:shadow-[0_0_40px_-10px_rgba(255,255,255,0.1)] hover:border-white/20 hover:-translate-y-1 transition-all duration-300 group flex flex-col relative overflow-hidden">
                                     <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-[50px] -translate-y-1/2 translate-x-1/2 group-hover:bg-primary/20 transition-colors" />
 

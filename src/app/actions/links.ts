@@ -22,8 +22,9 @@ export async function addLink(pageId: string, title: string, url: string) {
     if (!user) throw new Error("Unauthorized");
 
     // Get current max order
-    const existingLinks = await db.select().from(links).where(eq(links.pageId, pageId)).all();
-    const maxOrder = existingLinks.length > 0 ? Math.max(...existingLinks.map(l => l.order || 0)) : -1;
+    const initialLinks = await db.select().from(links).where(eq(links.pageId, pageId)).all();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const maxOrder = initialLinks.length > 0 ? Math.max(...initialLinks.map((l: any) => l.order || 0)) : -1;
 
     try {
         await db.insert(links).values({

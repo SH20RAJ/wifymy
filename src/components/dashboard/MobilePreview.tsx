@@ -3,11 +3,12 @@
 import { getTheme } from "@/lib/themes";
 import { cn } from "@/lib/utils";
 import { ExternalLink, Zap } from "lucide-react";
+import { ThemeEffects } from "@/components/ThemeEffects";
 
 type MockProfile = {
 	displayName: string;
 	bio: string;
-	avatarUrl: string | null;
+	avatarUrl: string | null | undefined;
 };
 
 type MockLink = {
@@ -46,6 +47,7 @@ export function MobilePreview({
                     '--theme-border': theme.style.cardBorder,
                 } as React.CSSProperties}
             >
+                <ThemeEffects theme={theme} />
                 {/* Decorative Theme Elements */}
                 <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-white/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/3 opacity-50 pointer-events-none" />
                 

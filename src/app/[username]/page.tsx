@@ -8,6 +8,8 @@ import { pages, links } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { AnalyticsTracker } from "@/components/AnalyticsTracker";
 import { TrackedLink } from "@/components/TrackedLink";
+import { ThemeEffects } from "@/components/ThemeEffects";
+import Image from "next/image";
 
 export default async function PublicProfilePage({
 	params,
@@ -28,7 +30,8 @@ export default async function PublicProfilePage({
 
     // Fetch active links
     const pageLinks = await db.select().from(links).where(eq(links.pageId, page.id)).orderBy(links.order).all();
-    const activeLinks = pageLinks.filter(l => l.isActive);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const activeLinks = pageLinks.filter((l: any) => l.isActive);
 
     const theme = getTheme(page.themeId || "minimalist");
 
@@ -48,6 +51,7 @@ export default async function PublicProfilePage({
             } as React.CSSProperties}
         >
 			<AnalyticsTracker pageId={page.id} />
+            <ThemeEffects theme={theme} />
 			
 			{/* Decorative Theme Elements */}
 			<div className="absolute top-0 right-0 w-[600px] h-[600px] bg-white/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 opacity-50 pointer-events-none" />
@@ -60,8 +64,14 @@ export default async function PublicProfilePage({
                         style={{ backgroundColor: 'var(--theme-card)', borderColor: 'var(--theme-border)' }}
                     >
 						{page.avatarUrl ? (
-							// eslint-disable-next-line @next/next/no-img-element
-							<img src={page.avatarUrl} alt={page.displayName || page.slug} className="w-full h-full object-cover" />
+							<div className="relative w-full h-full">
+								<Image 
+									src={page.avatarUrl} 
+									alt={page.displayName || page.slug} 
+									fill 
+									className="object-cover" 
+								/>
+							</div>
 						) : (
 							<span className="text-3xl font-bold" style={{ color: 'var(--theme-muted)' }}>{(page.displayName?.[0] || page.slug[0]).toUpperCase()}</span>
 						)}
@@ -74,7 +84,8 @@ export default async function PublicProfilePage({
 
 				{/* Links Container */}
 				<div className="flex flex-col gap-4 w-full">
-					{activeLinks.map((link) => (
+					{/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+					{activeLinks.map((link: any) => (
 						<TrackedLink 
 							key={link.id} 
 							href={link.url}

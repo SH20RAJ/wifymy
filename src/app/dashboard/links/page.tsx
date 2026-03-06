@@ -18,7 +18,8 @@ export default async function LinksPage(props: { searchParams: Promise<{ page?: 
 
     const pageLinks = await db.select().from(links).where(eq(links.pageId, pageId)).orderBy(links.order).all();
 
-    const sanitizedLinks = pageLinks.map(l => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sanitizedLinks = pageLinks.map((l: any) => ({
         id: l.id,
         title: l.title,
         url: l.url,

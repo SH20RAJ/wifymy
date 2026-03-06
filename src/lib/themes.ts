@@ -13,6 +13,9 @@ export type Theme = {
     buttonHover: string;
     fontFamily: string;
   };
+  effects?: {
+    type: 'hearts' | 'particles' | 'grid' | 'dots' | 'folk-pattern' | 'none';
+  };
 };
 
 export const themes: Theme[] = [
@@ -79,6 +82,74 @@ export const themes: Theme[] = [
       buttonHover: '#cccccc',
       fontFamily: 'var(--font-outfit), sans-serif',
     },
+  },
+  {
+    id: 'neo-brutal',
+    name: 'Neo Brutalism',
+    type: 'light',
+    style: {
+      background: '#fde047', // Yellow 300
+      card: '#ffffff',
+      cardBorder: '#000000',
+      text: '#000000',
+      textMuted: '#404040', // Neutral 700
+      button: '#ef4444', // Red 500
+      buttonText: '#ffffff',
+      buttonHover: '#dc2626',
+      fontFamily: 'var(--font-outfit), sans-serif',
+    },
+    effects: { type: 'grid' }
+  },
+  {
+    id: 'romance',
+    name: 'Romance',
+    type: 'light',
+    style: {
+      background: 'linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%)',
+      card: 'rgba(255, 255, 255, 0.7)',
+      cardBorder: '#fbcfe8', // Pink 200
+      text: '#be185d', // Pink 700
+      textMuted: '#f472b6', // Pink 400
+      button: '#db2777', // Pink 600
+      buttonText: '#ffffff',
+      buttonHover: '#be185d',
+      fontFamily: 'var(--font-outfit), sans-serif',
+    },
+    effects: { type: 'hearts' }
+  },
+  {
+    id: 'indian-heritage',
+    name: 'Indian Heritage',
+    type: 'dark',
+    style: {
+      background: '#7c2d12', // Orange 900 (Terracotta)
+      card: '#9a3412', // Orange 800
+      cardBorder: '#f59e0b', // Amber 500 (Marigold)
+      text: '#fef3c7', // Amber 50
+      textMuted: '#fcd34d', // Amber 300
+      button: '#f59e0b',
+      buttonText: '#7c2d12',
+      buttonHover: '#d97706',
+      fontFamily: 'var(--font-outfit), sans-serif',
+    },
+    effects: { type: 'folk-pattern' }
+  },
+  {
+    id: 'folk',
+    name: 'Folk Earth',
+    type: 'light',
+    style: {
+      background: '#fef3c7', // Amber 50
+      card: '#ffffff',
+      cardBorder: '#d97706', // Amber 600
+      text: '#451a03', // Amber 950
+      textMuted: '#78350f', // Amber 900
+      button: '#15803d', // Green 700
+      buttonText: '#ffffff',
+      buttonHover: '#166534', // Green 800
+      fontFamily: 'var(--font-outfit), sans-serif',
+    },
+    effects: { type: 'dots' }
   }
 ];
 

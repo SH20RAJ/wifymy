@@ -26,7 +26,7 @@ export async function getAnalyticsSummary(pageId: string) {
     // Get total clicks
     const totalClicksQuery = await db.select({ count: sql<number>`count(*)` })
         .from(analytics)
-        .where(and(eq(analytics.pageId, pageId), eq(analytics.type, 'CLICK')));
+        .where(and(eq(analytics.pageId, pageId), eq(analytics.type, 'CLICK'))) as unknown as { count: number }[];
 
     // Get top links
     const topLinksQuery = await db.select({
@@ -42,11 +42,13 @@ export async function getAnalyticsSummary(pageId: string) {
     // Fetch link titles for the top links
     const topLinksData = [];
     if (topLinksQuery.length > 0) {
-        const linkIds = topLinksQuery.map(l => l.linkId as string);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const linkIds = topLinksQuery.map((l: any) => l.linkId as string);
         const linkDetails = await db.select({ id: links.id, title: links.title }).from(links).where(inArray(links.id, linkIds));
         
         for (const stat of topLinksQuery) {
-            const detail = linkDetails.find(l => l.id === stat.linkId);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const detail = (linkDetails as any[]).find((l: any) => l.id === stat.linkId);
             if (detail) {
                 topLinksData.push({
                     id: detail.id,
@@ -64,7 +66,7 @@ export async function getAnalyticsSummary(pageId: string) {
     })
     .from(analytics)
     .where(eq(analytics.pageId, pageId))
-    .groupBy(analytics.deviceType);
+    .groupBy(analytics.deviceType) as unknown as { deviceType: string | null, count: number }[];
 
     return {
         totalViews: totalViewsQuery[0].count,

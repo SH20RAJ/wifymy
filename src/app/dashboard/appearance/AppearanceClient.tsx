@@ -4,6 +4,7 @@ import { useState } from "react";
 import { themes } from "@/lib/themes";
 import { MobilePreview } from "@/components/dashboard/MobilePreview";
 import { Check, Loader2 } from "lucide-react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { updatePageProfile, updatePageTheme } from "@/app/actions/pages";
 
@@ -12,7 +13,7 @@ export default function AppearanceClient({ initialPage, initialLinks }: { initia
     const [profile, setProfile] = useState({
         displayName: initialPage.displayName || "",
         bio: initialPage.bio || "",
-        avatarUrl: initialPage.avatarUrl
+        avatarUrl: initialPage.avatarUrl || undefined
     });
     const [isSaving, setIsSaving] = useState(false);
 
@@ -52,10 +53,14 @@ export default function AppearanceClient({ initialPage, initialLinks }: { initia
                     <section className="bg-card rounded-2xl border border-border p-6 shadow-sm">
                         <h2 className="text-lg font-semibold mb-6">Profile Details</h2>
                         <div className="flex flex-col sm:flex-row gap-6 items-start">
-                            <div className="w-24 h-24 bg-secondary text-5xl font-bold text-muted-foreground flex items-center justify-center rounded-full border border-border shrink-0 overflow-hidden">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <div className="w-24 h-24 bg-secondary text-5xl font-bold text-muted-foreground flex items-center justify-center rounded-full border border-border shrink-0 overflow-hidden relative">
                                 {profile.avatarUrl ? (
-                                    <img src={profile.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                                    <Image 
+                                        src={profile.avatarUrl} 
+                                        alt="Avatar" 
+                                        fill 
+                                        className="object-cover" 
+                                    />
                                 ) : (
                                     (profile.displayName?.[0] || initialPage.slug[0]).toUpperCase()
                                 )}
