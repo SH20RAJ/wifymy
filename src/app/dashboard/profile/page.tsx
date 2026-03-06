@@ -17,13 +17,7 @@ export default async function ProfilePage() {
                             <p className="text-xs text-muted-foreground mt-1">Managed via Stack Auth.</p>
                         </div>
 
-                        <div className="flex flex-col gap-1.5">
-                            <label className="text-sm font-medium">Username</label>
-                            <div className="flex items-center">
-                                <span className="h-10 px-3 bg-secondary border border-r-0 border-border rounded-l-lg flex items-center text-muted-foreground text-sm">wify.my/</span>
-                                <input type="text" placeholder="username" defaultValue={user.id} className="flex-1 h-10 px-3 rounded-r-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono text-sm" />
-                            </div>
-                        </div>
+
                     </div>
                 </section>
 
