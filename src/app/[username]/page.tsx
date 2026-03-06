@@ -6,6 +6,8 @@ import { getTheme } from "@/lib/themes";
 import { db } from "@/db";
 import { pages, links } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { AnalyticsTracker } from "@/components/AnalyticsTracker";
+import { TrackedLink } from "@/components/TrackedLink";
 
 export default async function PublicProfilePage({
 	params,
@@ -45,6 +47,8 @@ export default async function PublicProfilePage({
                 '--theme-btn-hover': theme.style.buttonHover,
             } as React.CSSProperties}
         >
+			<AnalyticsTracker pageId={page.id} />
+			
 			{/* Decorative Theme Elements */}
 			<div className="absolute top-0 right-0 w-[600px] h-[600px] bg-white/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 opacity-50 pointer-events-none" />
 			
@@ -71,11 +75,11 @@ export default async function PublicProfilePage({
 				{/* Links Container */}
 				<div className="flex flex-col gap-4 w-full">
 					{activeLinks.map((link) => (
-						<a 
+						<TrackedLink 
 							key={link.id} 
 							href={link.url}
-							target="_blank"
-							rel="noopener noreferrer"
+							pageId={page.id}
+							linkId={link.id}
 							className={cn(
 								"group relative flex items-center justify-between p-4 px-6 rounded-2xl shadow-sm hover:scale-[1.02] transition-all duration-300 border-[length:inherit]"
 							)}
@@ -96,7 +100,7 @@ export default async function PublicProfilePage({
 							<div className="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all font-bold">
 								<ArrowUpRightIcon />
 							</div>
-						</a>
+						</TrackedLink>
 					))}
 				</div>
 
