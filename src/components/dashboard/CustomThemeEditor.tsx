@@ -3,12 +3,8 @@
 import { CustomTheme } from "@/lib/themes";
 import { 
     Palette, 
-    Type, 
     Square, 
-    Circle, 
     MousePointer2, 
-    Image as ImageIcon,
-    Layout,
     ChevronDown,
     Zap,
     Type as TypeIcon
@@ -18,7 +14,7 @@ import { useState } from "react";
 
 type SectionProps = {
     title: string;
-    icon: any;
+    icon: React.ElementType;
     children: React.ReactNode;
     defaultOpen?: boolean;
 };
