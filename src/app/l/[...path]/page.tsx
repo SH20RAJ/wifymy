@@ -2,6 +2,8 @@ import { generateLinks } from '@/lib/deep-links';
 import { headers } from 'next/headers';
 import { redirect, notFound } from 'next/navigation';
 import ClientRedirect from './client-redirect';
+import { getCollection } from '@/lib/mongodb';
+import { MongoDeeplink } from '@/app/actions/deeplinks';
 
 // Force no caching for redirects to ensure User-Agent logic always runs
 export const dynamic = 'force-dynamic';
@@ -27,7 +29,7 @@ export default async function RedirectPage({
     const resolvedSearchParams = await searchParams;
 
     // Reconstruct the URL path + query
-    // params.path is ['instagram.com', 'p', 'xyz']
+    // params.path is ['instagram.com', 'p', 'xyz'] or ['my-slug']
     const pathStr = resolvedParams.path.join('/');
 
     // PREVENT STATIC ASSETS FROM BEING REDIRECTED
@@ -38,19 +40,28 @@ export default async function RedirectPage({
         notFound();
     }
 
-    // Reconstruct query string if any
-    const searchParamsObj = new URLSearchParams();
-    Object.entries(resolvedSearchParams).forEach(([key, value]) => {
-        if (Array.isArray(value)) {
-            value.forEach(v => searchParamsObj.append(key, v));
-        } else if (value !== undefined) {
-            searchParamsObj.append(key, value);
-        }
-    });
-    const queryString = searchParamsObj.toString();
-    const fullUrlStr = queryString ? `${pathStr}?${queryString}` : pathStr;
+    // 1. Check if this is a managed deeplink slug
+    const deeplinksCollection = await getCollection<MongoDeeplink>("deeplinks");
+    const managedLink = await deeplinksCollection.findOne({ slug: pathStr.toLowerCase() });
 
-    const data = generateLinks(fullUrlStr);
+    let finalUrl = pathStr;
+    if (managedLink) {
+        finalUrl = managedLink.destinationUrl;
+    } else {
+        // Reconstruct query string if any for zero-auth links
+        const searchParamsObj = new URLSearchParams();
+        Object.entries(resolvedSearchParams).forEach(([key, value]) => {
+            if (Array.isArray(value)) {
+                value.forEach(v => searchParamsObj.append(key, v));
+            } else if (value !== undefined) {
+                searchParamsObj.append(key, value);
+            }
+        });
+        const queryString = searchParamsObj.toString();
+        finalUrl = queryString ? `${pathStr}?${queryString}` : pathStr;
+    }
+
+    const data = generateLinks(finalUrl);
 
     const headersList = await headers();
     const userAgent = headersList.get('user-agent') || '';

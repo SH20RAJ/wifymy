@@ -18,6 +18,12 @@ export default function DashboardNav() {
         </div>
         Overview
       </Link>
+      <Link href="/dashboard/deeplinks" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 hover:backdrop-blur-md transition-all duration-300 text-sm font-medium border border-transparent hover:border-white/10 group">
+        <div className="w-8 h-8 rounded-lg bg-yellow-500/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+            <LinkIcon className="w-4 h-4 text-yellow-500" />
+        </div>
+        Smart Deeplinks
+      </Link>
       <div className="md:my-2 w-px md:w-full h-full md:h-px bg-border/50 shrink-0" />
       <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 mb-2 hidden md:block mt-2">Page Management</div>
       <Link 

@@ -16,11 +16,11 @@ export function Navbar() {
 					<Zap className="h-5 w-5 fill-foreground" />
 					<span>Wify.my</span>
 				</div>
-				<div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
+				{/* <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
 					<Link href="/#features" className="hover:text-foreground transition-colors">Features</Link>
 					<Link href="/#why" className="hover:text-foreground transition-colors">Why Wify</Link>
 					<Link href="/#platforms" className="hover:text-foreground transition-colors">Platforms</Link>
-				</div>
+				</div> */}
 				<div className="flex items-center gap-4">
 					<ThemeToggle />
 					{user ? (
