@@ -11,29 +11,38 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </div>
 
       {/* Sidebar Navigation */}
-      <aside className="w-full md:w-64 border-b md:border-b-0 md:border-r border-white/10 bg-black/40 backdrop-blur-xl p-4 flex flex-col gap-2 relative z-10 shadow-[4px_0_24px_-12px_rgba(0,0,0,0.5)]">
-        <div className="flex items-center gap-3 font-bold text-xl tracking-tight mb-8 mt-4 px-4">
-			<div className="w-10 h-10 rounded-xl bg-linear-to-br from-primary to-purple-600 flex items-center justify-center shadow-lg shadow-primary/20">
-                <Zap className="h-5 w-5 fill-white text-white" />
+      <aside className="w-full md:w-72 border-b md:border-b-0 md:border-r border-white/10 bg-black/40 backdrop-blur-3xl p-4 flex flex-col gap-2 relative z-50 shadow-[4px_0_24px_-12px_rgba(0,0,0,0.5)] md:sticky md:top-0 md:h-screen">
+        <div className="flex items-center justify-between md:justify-start gap-3 font-bold text-xl tracking-tight mb-6 mt-2 md:mb-8 md:mt-4 px-4">
+            <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-linear-to-br from-primary to-purple-600 flex items-center justify-center shadow-lg shadow-primary/20">
+                    <Zap className="h-5 w-5 fill-white text-white" />
+                </div>
+                <span className="bg-clip-text text-transparent bg-linear-to-r from-white to-neutral-400">Wifymy</span>
             </div>
-			<span className="bg-clip-text text-transparent bg-linear-to-r from-white to-neutral-400">Wifymy</span>
+            
+            <div className="md:hidden">
+                <UserButton />
+            </div>
 		</div>
 
-        <DashboardNav />
+        <div className="overflow-y-auto no-scrollbar flex-1 -mx-2 px-2">
+            <DashboardNav />
+        </div>
 
-        <div className="mt-auto hidden md:flex items-center justify-between gap-3 px-4 py-4 rounded-xl border border-white/5 bg-white/5 backdrop-blur-md">
-            <span className="text-sm font-medium text-neutral-300">Account</span>
+        <div className="mt-auto hidden md:flex items-center justify-between gap-3 px-4 py-4 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md hover:bg-white/10 transition-colors">
+            <div className="flex flex-col">
+                <span className="text-xs font-bold text-neutral-500 uppercase tracking-wider">Account</span>
+                <span className="text-sm font-medium text-neutral-300">Settings</span>
+            </div>
             <UserButton />
         </div>
       </aside>
 
       {/* Main Content Area */}
       <main className="flex-1 p-4 md:p-8 lg:p-12 overflow-y-auto relative z-10">
-        {/* Mobile Header Auth */}
-        <div className="md:hidden flex justify-end mb-6">
-            <UserButton />
+        <div className="max-w-7xl mx-auto">
+            {children}
         </div>
-        {children}
       </main>
     </div>
   );

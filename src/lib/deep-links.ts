@@ -29,10 +29,22 @@ export function parseUrlAndGenerateLinks(path: string[]): LinkData {
 export function generateLinks(input: string): LinkData {
   let urlStr = input.trim();
 
+  // Normalize protocol: handle cases like "https:/", "https:///", or "https:" missing slashes
+  // This often happens in Next.js dynamic routes [...path] where // is collapsed
+  if (urlStr.match(/^https?:\/+[^\/]/)) {
+    urlStr = urlStr.replace(/^(https?:\/+)/, "$1/");
+  } else if (urlStr.match(/^https?:\/?$/)) {
+    // Just the protocol, not a valid URL yet
+  } else if (!urlStr.startsWith("http://") && !urlStr.startsWith("https://") && !urlStr.startsWith("@")) {
+    // If it looks like a domain but lacks protocol
+    if (urlStr.includes(".") || urlStr.includes(":")) {
+       urlStr = "https://" + urlStr;
+    }
+  }
+
   // Handle @username logic -> Default to Instagram
   if (urlStr.startsWith("@")) {
     const username = urlStr.substring(1);
-    // Instagram Profile
     return {
       platform: "instagram",
       deepLink: `instagram://user?username=${username}`,
@@ -41,19 +53,10 @@ export function generateLinks(input: string): LinkData {
     };
   }
 
-  // Heuristic: If it looks like "instagram.com/foo", prepend https
-  // But if it's just "shaswat", it's ambiguous. We'll assume input has some domain indicator OR is a direct paste.
-  // If no protocol, try to fix.
-  if (!urlStr.startsWith("http://") && !urlStr.startsWith("https://")) {
-    urlStr = "https://" + urlStr;
-  }
-
   let url: URL;
   try {
     url = new URL(urlStr);
   } catch {
-    // Fallback: if URL construction fails, it might be a raw username without @?
-    // For now, return unknown.
     return {
       platform: "unknown",
       deepLink: "",

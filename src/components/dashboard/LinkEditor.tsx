@@ -18,7 +18,7 @@ import {
   useSortable
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Plus, Trash2 } from 'lucide-react';
+import { GripVertical, Plus, Trash2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { addLink, updateLink, deleteLink, reorderLinks } from '@/app/actions/links';
 
@@ -121,11 +121,24 @@ export function LinkEditor({
       const newUrl = "https://";
       
       setIsSaving(true);
-      await addLink(pageId, newTitle, newUrl);
-      // We rely on server action revalidating path to fetch new links
-      // But we could also do optimistic UI. For now, we'll reload instead to get exact ID.
-      setIsSaving(false);
-      window.location.reload(); 
+      try {
+        const result = await addLink(pageId, newTitle, newUrl);
+        if (result.success && result.link) {
+          const newLink: LinkItem = {
+            id: result.link.id,
+            title: result.link.title,
+            url: result.link.url,
+            isActive: result.link.isActive
+          };
+          const newItems = [...items, newLink];
+          setItems(newItems);
+          onChange(newItems);
+        }
+      } catch (error) {
+        console.error("Failed to add link:", error);
+      } finally {
+        setIsSaving(false);
+      }
   }
 
   const handleRemoveLink = async (id: string) => {
@@ -143,14 +156,21 @@ export function LinkEditor({
       setItems(newItems);
       onChange(newItems);
       
-      // Debounced or direct save (doing direct for simplicity)
       await updateLink(id, data);
   }
 
   return (
     <div className="space-y-6">
-      <Button onClick={() => { handleAddLink().catch(console.error); }} disabled={isSaving} className="w-full h-12 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 text-base font-semibold shadow-sm">
-          <Plus className="w-5 h-5 mr-2" /> {isSaving ? "Saving..." : "Add New Link"}
+      <Button 
+        onClick={() => { handleAddLink().catch(console.error); }} 
+        disabled={isSaving} 
+        className="w-full h-12 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 text-base font-semibold shadow-sm transition-all"
+      >
+          {isSaving ? (
+            <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Saving...</>
+          ) : (
+            <><Plus className="w-5 h-5 mr-2" /> Add New Link</>
+          )}
       </Button>
 
       {items.length === 0 ? (

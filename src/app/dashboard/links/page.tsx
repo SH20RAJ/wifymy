@@ -18,6 +18,15 @@ export default async function LinksPage(props: { searchParams: Promise<{ page?: 
     const linksCollection = await getCollection("links");
     const pageLinks = await linksCollection.find({ pageId: pageId }).sort({ order: 1 }).toArray();
 
+    const sanitizedPage = {
+        id: page.id as string,
+        slug: page.slug as string,
+        displayName: (page.displayName || null) as string | null,
+        bio: (page.bio || null) as string | null,
+        avatarUrl: (page.avatarUrl || null) as string | null,
+        themeId: (page.themeId || "minimalist") as string | null,
+    };
+
     const sanitizedLinks = pageLinks.map((l) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const link = l as any;
@@ -29,6 +38,5 @@ export default async function LinksPage(props: { searchParams: Promise<{ page?: 
         };
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return <LinksClient initialPage={page as any} initialLinks={sanitizedLinks} />;
+    return <LinksClient initialPage={sanitizedPage} initialLinks={sanitizedLinks} />;
 }

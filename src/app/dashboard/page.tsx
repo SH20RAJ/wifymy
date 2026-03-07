@@ -6,7 +6,15 @@ import { ExternalLink, Settings2, Layout } from "lucide-react";
 
 export default async function DashboardPage() {
     await stackServerApp.getUser({ or: "redirect" });
-    const pages = await getUserPages();
+    const pagesRaw = await getUserPages();
+    const pages = pagesRaw.map(p => ({
+        id: p.id,
+        slug: p.slug,
+        displayName: p.displayName || null,
+        bio: p.bio || null,
+        avatarUrl: p.avatarUrl || null,
+        themeId: p.themeId || "minimalist",
+    }));
 
     return (
         <div className="max-w-6xl mx-auto space-y-12 pb-12">

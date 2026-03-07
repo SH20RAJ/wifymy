@@ -9,7 +9,15 @@ export default async function AnalyticsPage({
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
     await stackServerApp.getUser({ or: "redirect" });
-    const pages = await getUserPages();
+    const pagesRaw = await getUserPages();
+    const pages = pagesRaw.map(p => ({
+        id: p.id,
+        slug: p.slug,
+        displayName: p.displayName || null,
+        bio: p.bio || null,
+        avatarUrl: p.avatarUrl || null,
+        themeId: p.themeId || "minimalist",
+    }));
     
     // Resolve search params
     const resolvedParams = await searchParams;

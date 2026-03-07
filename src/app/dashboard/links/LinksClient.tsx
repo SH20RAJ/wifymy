@@ -4,7 +4,7 @@ import { useState } from "react";
 import { LinkEditor } from "@/components/dashboard/LinkEditor";
 import { MobilePreview } from "@/components/dashboard/MobilePreview";
 
-export default function LinksClient({ initialPage, initialLinks }: { initialPage: { id: string, themeId: string | null, displayName: string | null, bio: string | null, avatarUrl: string | null }, initialLinks: { id: string, title: string, url: string, isActive: boolean }[] }) {
+export default function LinksClient({ initialPage, initialLinks }: { initialPage: { id: string, slug: string, themeId: string | null, displayName: string | null, bio: string | null, avatarUrl: string | null }, initialLinks: { id: string, title: string, url: string, isActive: boolean }[] }) {
     const [links, setLinks] = useState(initialLinks);
 
     return (

@@ -54,42 +54,45 @@ export function Hero() {
 				</div>
 
 				<h1 className="text-5xl md:text-7xl lg:text-[5.5rem] font-medium tracking-tight text-foreground leading-[1.05] max-w-4xl text-balance mb-8">
-					Your ultimate <span className="text-muted-foreground">link-in-bio powerhouse.</span>
+					Your ultimate <span className="text-muted-foreground">universal smart links.</span>
 				</h1>
 
 				<p className="text-xl md:text-2xl text-muted-foreground max-w-2xl leading-relaxed mb-12 text-balance">
-					Create stunning, high-performance social pages and smart deeplinks that open directly in native apps. Elite analytics included.
+					Create stunning bio pages or generate instant, zero-auth deeplinks that open directly in native apps. Elite engineering, free for everyone.
 				</p>
 
-				<div className="flex flex-col sm:flex-row gap-4 mb-16">
+				<div className="flex flex-col sm:flex-row gap-4 mb-14">
 					<Link href="/dashboard">
 						<Button size="lg" className="h-14 px-8 rounded-full text-base font-semibold bg-foreground text-background hover:bg-foreground/90 shadow-lg group">
-							Get Started <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+							Create Hero Page <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
 						</Button>
 					</Link>
 					<Link href="#features">
 						<Button size="lg" variant="outline" className="h-14 px-8 rounded-full text-base font-semibold border-border hover:bg-secondary/50">
-							Explore Features
+							How it works
 						</Button>
 					</Link>
 				</div>
 
 				{/* Generator Form styled Premium */}
 				<div className="w-full max-w-2xl relative z-10 transition-all">
-					<div className="bg-background rounded-full p-2.5 flex flex-col sm:flex-row gap-2 shadow-[0_8px_30px_rgb(0,0,0,0.08)] ring-1 ring-border/50 focus-within:ring-primary/20 focus-within:ring-2 transition-all">
+					<div className="bg-background rounded-full p-2.5 flex flex-col sm:flex-row gap-2 shadow-[0_15px_40px_rgb(0,0,0,0.12)] ring-1 ring-border/50 focus-within:ring-primary/20 focus-within:ring-2 transition-all">
 						<form onSubmit={handleGenerate} className="flex-1 flex flex-col sm:flex-row gap-2 w-full">
 							<Input
 								type="text"
-								placeholder="Paste any link to deep-link..."
+								placeholder="Paste any link (No login required)..."
 								value={inputUrl}
 								onChange={(e) => setInputUrl(e.target.value)}
 								className="border-0 bg-transparent h-14 md:h-16 text-lg focus-visible:ring-0 shadow-none px-6 flex-1 rounded-full placeholder:text-muted-foreground"
 							/>
-							<Button type="submit" size="lg" className="h-14 md:h-16 px-8 rounded-full text-base font-semibold bg-primary/10 text-primary hover:bg-primary/20 min-w-[160px] inline-flex items-center justify-center shadow-none border border-primary/20">
-								Quick Fix <Zap className="ml-2 w-4 h-4 fill-current" />
+							<Button type="submit" size="lg" className="h-14 md:h-16 px-8 rounded-full text-base font-bold bg-primary text-primary-foreground hover:bg-primary/90 min-w-[160px] inline-flex items-center justify-center shadow-md">
+								Fix Link <Zap className="ml-2 w-4 h-4 fill-current" />
 							</Button>
 						</form>
 					</div>
+                    <p className="mt-4 text-sm text-muted-foreground/60 font-medium">
+                        Instant deep-links are anonymous. Managed slugs require a free account.
+                    </p>
 
 					{error && (
 						<p className="mt-6 text-sm font-medium text-red-500 bg-red-50 dark:bg-red-500/10 inline-flex px-4 py-2 rounded-full absolute -bottom-16 left-1/2 -translate-x-1/2 whitespace-nowrap border border-red-100 dark:border-red-900/50">

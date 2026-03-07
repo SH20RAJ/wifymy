@@ -137,25 +137,49 @@ export function SupportedPlatforms() {
                     </p>
                 </div>
 
-                <div className="flex-[1.5] w-full max-w-3xl grid grid-cols-2 sm:grid-cols-3 gap-4">
-                    {platforms.map((platform) => (
-                        <div 
-                            key={platform.name}
-                            className={cn(
-                                "group relative flex flex-col items-center justify-center p-6 md:p-8 rounded-2xl border border-border bg-background transition-all duration-300 hover:scale-[1.03] cursor-default text-muted-foreground shadow-sm",
-                                platform.bgHover,
-                                platform.color
-                            )}
-                        >
-                            <div className="mb-4 transition-transform duration-300 ease-out group-hover:-translate-y-1">
-                                {platform.icon}
+                <div className="flex-[1.5] w-full max-w-3xl space-y-8">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        {platforms.map((platform) => (
+                            <div 
+                                key={platform.name}
+                                className={cn(
+                                    "group relative flex flex-col items-center justify-center p-6 md:p-8 rounded-2xl border border-border bg-background transition-all duration-300 hover:scale-[1.03] cursor-default text-muted-foreground shadow-sm",
+                                    platform.bgHover,
+                                    platform.color
+                                )}
+                            >
+                                <div className="mb-4 transition-transform duration-300 ease-out group-hover:-translate-y-1">
+                                    {platform.icon}
+                                </div>
+                                <h3 className="text-base font-bold text-foreground mb-1">{platform.name}</h3>
+                                <p className="text-xs text-muted-foreground text-center font-medium tracking-wide uppercase opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 absolute bottom-4">
+                                    {platform.description.split(',')[0]}
+                                </p>
                             </div>
-                            <h3 className="text-base font-bold text-foreground mb-1">{platform.name}</h3>
-                            <p className="text-xs text-muted-foreground text-center font-medium tracking-wide uppercase opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 absolute bottom-4">
-                                {platform.description.split(',')[0]}
+                        ))}
+                    </div>
+
+                    {/* How it Works / Feature Comparison */}
+                    <div className="grid sm:grid-cols-2 gap-4">
+                        <div className="p-6 rounded-2xl bg-primary/5 border border-primary/10 space-y-3">
+                            <div className="flex items-center gap-2">
+                                <div className="px-2 py-0.5 rounded text-[10px] font-bold bg-primary text-primary-foreground uppercase tracking-tighter">Instant</div>
+                                <h4 className="font-bold text-foreground italic">No Login Required</h4>
+                            </div>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                                Paste any social link on our home page and get an immediate deep-link. Perfect for one-off shares.
                             </p>
                         </div>
-                    ))}
+                        <div className="p-6 rounded-2xl bg-secondary/20 border border-border space-y-3">
+                            <div className="flex items-center gap-2">
+                                <div className="px-2 py-0.5 rounded text-[10px] font-bold bg-foreground text-background uppercase tracking-tighter">Managed</div>
+                                <h4 className="font-bold text-foreground italic">Custom Slugs</h4>
+                            </div>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                                Create a free account to get persistent /l/my-name links and a professional bio-page.
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>

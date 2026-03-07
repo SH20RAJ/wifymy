@@ -34,7 +34,7 @@ export async function addLink(pageId: string, title: string, url: string) {
     const maxOrder = pageLinks.length > 0 ? Math.max(...pageLinks.map(l => l.order || 0)) : -1;
 
     try {
-        await links.insertOne({
+        const newLink = {
             id: crypto.randomUUID(),
             pageId,
             title,
@@ -42,9 +42,10 @@ export async function addLink(pageId: string, title: string, url: string) {
             order: maxOrder + 1,
             isActive: true,
             createdAt: new Date(),
-        });
+        };
+        await links.insertOne(newLink as MongoLink);
         revalidatePath("/dashboard/links");
-        return { success: true };
+        return { success: true, link: newLink };
     } catch (error) {
         return { success: false, error: error instanceof Error ? error.message : "Unknown error" };
     }

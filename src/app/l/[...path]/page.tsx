@@ -32,14 +32,6 @@ export default async function RedirectPage({
     // params.path is ['instagram.com', 'p', 'xyz'] or ['my-slug']
     const pathStr = resolvedParams.path.join('/');
 
-    // PREVENT STATIC ASSETS FROM BEING REDIRECTED
-    const ignoredExtensions = [
-        '.ico', '.png', '.jpg', '.jpeg', '.svg', '.json', '.xml', '.txt', '.css', '.js', '.woff', '.woff2', '.ttf', '.eot'
-    ];
-    if (ignoredExtensions.some(ext => pathStr.toLowerCase().endsWith(ext))) {
-        notFound();
-    }
-
     // 1. Check if this is a managed deeplink slug
     const deeplinksCollection = await getCollection<MongoDeeplink>("deeplinks");
     const managedLink = await deeplinksCollection.findOne({ slug: pathStr.toLowerCase() });
@@ -59,6 +51,15 @@ export default async function RedirectPage({
         });
         const queryString = searchParamsObj.toString();
         finalUrl = queryString ? `${pathStr}?${queryString}` : pathStr;
+    }
+
+    // PREVENT STATIC ASSETS FROM BEING REDIRECTED (Checking after possible managed link lookup)
+    const ignoredExtensions = [
+        '.ico', '.png', '.jpg', '.jpeg', '.svg', '.json', '.xml', '.txt', '.css', '.js', '.woff', '.woff2', '.ttf', '.eot'
+    ];
+    if (ignoredExtensions.some(ext => finalUrl.toLowerCase().split('?')[0].endsWith(ext))) {
+        // Only return 404 if it's NOT a managed link and looks like a static asset
+        if (!managedLink) notFound();
     }
 
     const data = generateLinks(finalUrl);
