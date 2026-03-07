@@ -2,7 +2,8 @@ import { stackServerApp } from "@/stack/server";
 import { getUserPages } from "@/app/actions/pages";
 import Link from "next/link";
 import CreatePageForm from "@/components/dashboard/CreatePageForm";
-import { ExternalLink, Settings2, Layout } from "lucide-react";
+import { ExternalLink, Settings2, Layout, PlusCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default async function DashboardPage() {
     await stackServerApp.getUser({ or: "redirect" });
@@ -18,11 +19,17 @@ export default async function DashboardPage() {
 
     return (
         <div className="max-w-6xl mx-auto space-y-12 pb-12">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 relative">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 relative">
                 <div className="space-y-2">
                     <h1 className="text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-linear-to-r from-white to-neutral-400">Dashboard Overview</h1>
                     <p className="text-neutral-400 text-lg">Manage your pages, links, and appearance configurations.</p>
                 </div>
+                <a href="#create-page">
+                    <Button className="rounded-2xl h-12 px-6 bg-white text-black hover:bg-white/90 font-bold transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)]">
+                        <PlusCircle className="w-5 h-5 mr-2" />
+                        Create New Page
+                    </Button>
+                </a>
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_350px] gap-8 items-start">
@@ -90,7 +97,7 @@ export default async function DashboardPage() {
                     )}
                 </div>
 
-                <div className="sticky top-8 lg:top-12">
+                <div className="sticky top-8 lg:top-12" id="create-page">
                     <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-3xl relative overflow-hidden shadow-2xl">
                         <div className="absolute top-0 right-0 w-full h-1 bg-linear-to-r from-transparent via-primary to-transparent opacity-50" />
                         <CreatePageForm />

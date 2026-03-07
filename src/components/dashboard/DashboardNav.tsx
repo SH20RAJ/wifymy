@@ -2,12 +2,18 @@
 
 import Link from "next/link";
 import { Zap, UserCircle, Link as LinkIcon, Palette, BarChart3, ChevronRight } from "lucide-react";
-import { useSearchParams, usePathname } from "next/navigation";
+import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useState, useTransition } from "react";
+import { Loader2 } from "lucide-react";
 
 export default function DashboardNav() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [clickedHref, setClickedHref] = useState<string | null>(null);
+  
   const pageId = searchParams.get("page");
   
   const querySuffix = pageId ? `?page=${pageId}` : "";
@@ -28,22 +34,31 @@ export default function DashboardNav() {
       {navItems.map((item) => {
         const isActive = pathname === item.href;
         return (
-          <Link 
+          <button 
             key={item.href}
-            href={item.href} 
+            onClick={() => {
+                setClickedHref(item.href);
+                startTransition(() => {
+                    router.push(item.href);
+                });
+            }}
             className={cn(
-                "flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300 text-sm font-medium border border-transparent shrink-0 md:shrink group",
+                "flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300 text-sm font-medium border border-transparent shrink-0 md:shrink group relative",
                 isActive 
                   ? "bg-white/10 text-white border-white/10 shadow-lg shadow-black/20" 
                   : "text-neutral-400 hover:bg-white/5 hover:text-white hover:border-white/5"
             )}
           >
             <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-transform group-hover:scale-110", item.bgColor)}>
-                <item.icon className={cn("w-4 h-4", item.color)} />
+                {isPending && clickedHref === item.href ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-white" />
+                ) : (
+                    <item.icon className={cn("w-4 h-4", item.color)} />
+                )}
             </div>
             {item.name}
             {isActive && <ChevronRight className="w-4 h-4 ml-auto hidden md:block opacity-50" />}
-          </Link>
+          </button>
         );
       })}
 
@@ -58,11 +73,17 @@ export default function DashboardNav() {
           const isDisabled = item.needsPage && !pageId;
 
           return (
-            <Link 
+            <button 
               key={item.href}
-              href={item.href} 
+              onClick={() => {
+                  if (isDisabled) return;
+                  setClickedHref(item.href);
+                  startTransition(() => {
+                      router.push(item.href);
+                  });
+              }}
               className={cn(
-                  "flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300 text-sm font-medium border border-transparent shrink-0 md:shrink group",
+                  "flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300 text-sm font-medium border border-transparent shrink-0 md:shrink group relative text-left",
                   isActive 
                     ? "bg-white/10 text-white border-white/10 shadow-lg shadow-black/20" 
                     : "text-neutral-400 hover:bg-white/5 hover:text-white hover:border-white/5",
@@ -70,11 +91,15 @@ export default function DashboardNav() {
               )}
             >
               <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-transform group-hover:scale-110", item.bgColor)}>
-                  <item.icon className={cn("w-4 h-4", item.color)} />
+                  {isPending && clickedHref === item.href ? (
+                      <Loader2 className="w-4 h-4 animate-spin text-white" />
+                  ) : (
+                      <item.icon className={cn("w-4 h-4", item.color)} />
+                  )}
               </div>
               {item.name}
               {isActive && <ChevronRight className="w-4 h-4 ml-auto hidden md:block opacity-50" />}
-            </Link>
+            </button>
           );
         })}
       </div>

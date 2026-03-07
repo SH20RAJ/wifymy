@@ -10,6 +10,7 @@ import { ThemeEffects } from "@/components/ThemeEffects";
 import { type MongoPage } from "@/app/actions/pages";
 import Image from "next/image";
 import { type Metadata } from "next";
+import { generateLinks } from "@/lib/deep-links";
 
 export async function generateMetadata({
     params,
@@ -163,6 +164,8 @@ export default async function PublicProfilePage({
 									alt={page.displayName || page.slug} 
 									fill 
 									className="object-cover" 
+                                    priority={true}
+                                    sizes="96px"
 								/>
 							</div>
 						) : (
@@ -178,37 +181,41 @@ export default async function PublicProfilePage({
 				{/* Links Container */}
 				<div className="flex flex-col gap-4 w-full">
 					{/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-					{activeLinks.map((link: any) => (
-						<TrackedLink 
-							key={link.id} 
-							href={link.url}
-							pageId={page.id}
-							linkId={link.id}
-							className={cn(
-								"link-card group relative flex items-center justify-between p-4 px-6 shadow-sm hover:scale-[1.02] transition-all duration-300 border-[length:inherit]",
-                                isCustom && customTheme.buttonStyle === 'shadow' && "shadow-[0_6px_0_0_rgba(0,0,0,0.1)]"
-							)}
-                            style={{
-                                backgroundColor: isCustom ? (customTheme.buttonStyle === 'outline' ? 'transparent' : buttonBg) : 'var(--theme-card)',
-                                borderColor: isCustom ? buttonBg : 'var(--theme-border)',
-                                borderRadius: buttonRadiusValue,
-                                color: isCustom ? buttonText : 'inherit'
-                            }}
-						>
-							<div className="flex items-center gap-4">
-								<div 
-                                    className="social-icon w-10 h-10 rounded-full flex items-center justify-center transition-colors"
-                                    style={{ backgroundColor: theme.type === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }}
-                                >
-									<ExternalLink className="w-4 h-4" style={{ color: isCustom ? buttonText : 'var(--theme-muted)' }} />
-								</div>
-								<span className="link-title font-semibold text-[15px]">{link.title}</span>
-							</div>
-							<div className="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all font-bold">
-								<ArrowUpRightIcon />
-							</div>
-						</TrackedLink>
-					))}
+					{activeLinks.map((link: any) => {
+                        const { deepLink } = generateLinks(link.url);
+                        return (
+                            <TrackedLink 
+                                key={link.id} 
+                                href={link.url}
+                                deepLink={deepLink}
+                                pageId={page.id}
+                                linkId={link.id}
+                                className={cn(
+                                    "link-card group relative flex items-center justify-between p-4 px-6 shadow-sm hover:scale-[1.02] transition-all duration-300 border-[length:inherit]",
+                                    isCustom && customTheme.buttonStyle === 'shadow' && "shadow-[0_6px_0_0_rgba(0,0,0,0.1)]"
+                                )}
+                                style={{
+                                    backgroundColor: isCustom ? (customTheme.buttonStyle === 'outline' ? 'transparent' : buttonBg) : 'var(--theme-card)',
+                                    borderColor: isCustom ? buttonBg : 'var(--theme-border)',
+                                    borderRadius: buttonRadiusValue,
+                                    color: isCustom ? buttonText : 'inherit'
+                                }}
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div 
+                                        className="social-icon w-10 h-10 rounded-full flex items-center justify-center transition-colors"
+                                        style={{ backgroundColor: theme.type === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }}
+                                    >
+                                        <ExternalLink className="w-4 h-4" style={{ color: isCustom ? buttonText : 'var(--theme-muted)' }} />
+                                    </div>
+                                    <span className="link-title font-semibold text-[15px]">{link.title}</span>
+                                </div>
+                                <div className="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all font-bold">
+                                    <ArrowUpRightIcon />
+                                </div>
+                            </TrackedLink>
+                        );
+                    })}
 				</div>
 
 				{/* Footer Branding */}
