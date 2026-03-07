@@ -5,7 +5,7 @@ import { createPage } from "@/app/actions/pages";
 import { Plus, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-export default function CreatePageForm() {
+export default function CreatePageForm({ onSuccess }: { onSuccess?: () => void }) {
     const [slug, setSlug] = useState("");
     const [displayName, setDisplayName] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -26,6 +26,7 @@ export default function CreatePageForm() {
             setDisplayName("");
             // Refresh dashboard
             router.refresh();
+            if (onSuccess) onSuccess();
         } else {
             setError(result.error || "Failed to create page");
             setIsLoading(false);
