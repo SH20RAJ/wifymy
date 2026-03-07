@@ -35,15 +35,22 @@ export function MobilePreview({
     const isCustom = themeId === 'custom' || !!customTheme;
     const background = isCustom && customTheme ? (
         customTheme.backgroundType === 'gradient' ? customTheme.backgroundValue : 
-        customTheme.backgroundType === 'image' ? `url(${customTheme.backgroundValue}) center/cover no-repeat` : 
+        customTheme.backgroundType === 'image' ? `url(${customTheme.backgroundValue}) center/${customTheme.backgroundSize || 'cover'} ${customTheme.backgroundRepeat || 'no-repeat'}` : 
         customTheme.backgroundValue
     ) : theme.style.background;
+
+    const backgroundOverlay = isCustom && customTheme?.backgroundType === 'image' ? customTheme.backgroundOverlay : 'transparent';
 
     const textColor = isCustom && customTheme ? customTheme.textColor : theme.style.text;
     const buttonBg = isCustom && customTheme ? customTheme.buttonColor : theme.style.button;
     const buttonText = isCustom && customTheme ? customTheme.buttonTextColor : theme.style.buttonText;
     const buttonRadiusValue = isCustom && customTheme ? customTheme.buttonRadius : '12px';
     const fontFamily = isCustom && customTheme ? customTheme.fontFamily : theme.style.fontFamily;
+    
+    // Avatar Styles
+    const avatarShape = isCustom && customTheme ? customTheme.avatarStyle : 'circle';
+    const avatarBorderColor = isCustom && customTheme ? customTheme.avatarBorderColor : 'transparent';
+    const avatarBorderSize = isCustom && customTheme ? customTheme.avatarBorderSize : '0px';
     
     const cardBg = isCustom && customTheme ? (
         customTheme.buttonStyle === 'glass' ? 'rgba(255,255,255,0.1)' : 
@@ -75,6 +82,14 @@ export function MobilePreview({
                 } as React.CSSProperties}
             >
                 {!isCustom && <ThemeEffects theme={theme} />}
+                
+                {/* Background Overlay for Images */}
+                {isCustom && customTheme?.backgroundType === 'image' && (
+                    <div 
+                        className="absolute inset-0 pointer-events-none z-0" 
+                        style={{ backgroundColor: backgroundOverlay }}
+                    />
+                )}
                 {/* Decorative Theme Elements */}
                 <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-white/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/3 opacity-50 pointer-events-none" />
                 
@@ -82,8 +97,19 @@ export function MobilePreview({
                     {/* Profile Header */}
                     <div className="flex flex-col items-center text-center space-y-3 mb-6">
                         <div 
-                            className="w-20 h-20 rounded-full flex items-center justify-center overflow-hidden border-[length:inherit]"
-                            style={{ backgroundColor: cardBg, borderColor: cardBorder }}
+                            className={cn(
+                                "w-20 h-20 flex items-center justify-center overflow-hidden border-[length:inherit] relative",
+                                avatarShape === 'circle' && "rounded-full",
+                                avatarShape === 'square' && "rounded-none",
+                                avatarShape === 'rounded' && "rounded-2xl",
+                                avatarShape === 'hidden' && "hidden"
+                            )}
+                            style={{ 
+                                backgroundColor: cardBg, 
+                                borderColor: avatarBorderColor,
+                                borderWidth: avatarBorderSize,
+                                borderStyle: 'solid'
+                            }}
                         >
                             {profile.avatarUrl ? (
                                 // eslint-disable-next-line @next/next/no-img-element

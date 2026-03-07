@@ -11,17 +11,31 @@ export interface MongoUser {
 }
 
 export interface CustomTheme {
-    backgroundType: 'solid' | 'gradient' | 'image' | 'video';
+    backgroundType: 'solid' | 'gradient' | 'image';
     backgroundValue: string;
-    backgroundOverlay?: number;
-    fontFamily: string;
-    textColor: string;
-    buttonStyle: 'flat' | 'shadow' | 'outline' | 'soft' | 'glass';
+    backgroundSize?: 'cover' | 'contain' | 'auto';
+    backgroundPosition?: string;
+    backgroundRepeat?: 'no-repeat' | 'repeat' | 'repeat-x' | 'repeat-y';
+    backgroundOverlay?: string; // rgba color for overlay
+    
     buttonColor: string;
     buttonTextColor: string;
+    buttonStyle: 'flat' | 'shadow' | 'outline' | 'soft' | 'glass';
     buttonRadius: string;
-    buttonBorderWidth?: string;
-    buttonShadowColor?: string;
+    buttonShadowColor?: string; // Moved from original position
+    
+    textColor: string;
+    fontFamily: string;
+    
+    avatarStyle?: 'circle' | 'square' | 'rounded' | 'hidden';
+    avatarBorderColor?: string;
+    avatarBorderSize?: string;
+    avatarBorderRadius?: string;
+
+    seoTitle?: string;
+    seoDescription?: string;
+    socialImage?: string;
+
     customCss?: string;
 }
 

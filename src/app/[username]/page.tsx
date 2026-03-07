@@ -9,6 +9,42 @@ import { TrackedLink } from "@/components/TrackedLink";
 import { ThemeEffects } from "@/components/ThemeEffects";
 import { type MongoPage } from "@/app/actions/pages";
 import Image from "next/image";
+import { type Metadata } from "next";
+
+export async function generateMetadata({
+    params,
+}: {
+    params: Promise<{ username: string }>;
+}): Promise<Metadata> {
+    const { username } = await params;
+    const pagesCollection = await getCollection<MongoPage>("pages");
+    const page = await pagesCollection.findOne({ slug: username });
+
+    if (!page) return {};
+
+    const customTheme = page.customTheme;
+    const isCustom = page.themeId === 'custom' && !!customTheme;
+
+    const title = (isCustom && customTheme?.seoTitle) || page.displayName || `@${page.slug} | Wify`;
+    const description = (isCustom && customTheme?.seoDescription) || page.bio || `Check out ${page.displayName || page.slug}'s profile on Wify.`;
+    const image = (isCustom && customTheme?.socialImage) || page.avatarUrl || "/og-image.png";
+
+    return {
+        title,
+        description,
+        openGraph: {
+            title,
+            description,
+            images: [image],
+        },
+        twitter: {
+            card: "summary_large_image",
+            title,
+            description,
+            images: [image],
+        },
+    };
+}
 
 export default async function PublicProfilePage({
 	params,
@@ -41,15 +77,22 @@ export default async function PublicProfilePage({
     // Determine effective styles
     const background = isCustom ? (
         customTheme.backgroundType === 'gradient' ? customTheme.backgroundValue : 
-        customTheme.backgroundType === 'image' ? `url(${customTheme.backgroundValue}) center/cover no-repeat` : 
+        customTheme.backgroundType === 'image' ? `url(${customTheme.backgroundValue}) ${customTheme.backgroundPosition || 'center'}/${customTheme.backgroundSize || 'cover'} ${customTheme.backgroundRepeat || 'no-repeat'}` : 
         customTheme.backgroundValue
     ) : theme.style.background;
+
+    const backgroundOverlay = isCustom && customTheme.backgroundType === 'image' ? customTheme.backgroundOverlay : 'transparent';
 
     const textColor = isCustom ? customTheme.textColor : theme.style.text;
     const buttonBg = isCustom ? customTheme.buttonColor : theme.style.button;
     const buttonText = isCustom ? customTheme.buttonTextColor : theme.style.buttonText;
     const buttonRadiusValue = isCustom ? customTheme.buttonRadius : '12px';
     const fontFamily = isCustom ? customTheme.fontFamily : theme.style.fontFamily;
+
+    // Avatar Styles
+    const avatarShape = isCustom ? customTheme.avatarStyle : 'circle';
+    const avatarBorderColor = isCustom ? customTheme.avatarBorderColor : 'transparent';
+    const avatarBorderSize = isCustom ? customTheme.avatarBorderSize : '0px';
     
     const cardBg = isCustom ? (
         customTheme.buttonStyle === 'glass' ? 'rgba(255,255,255,0.1)' : 
@@ -79,6 +122,14 @@ export default async function PublicProfilePage({
 			<AnalyticsTracker pageId={page.id} />
             {!isCustom && <ThemeEffects theme={theme} />}
             
+            {/* Background Overlay for Images */}
+            {isCustom && customTheme.backgroundType === 'image' && (
+                <div 
+                    className="fixed inset-0 pointer-events-none z-0" 
+                    style={{ backgroundColor: backgroundOverlay }}
+                />
+            )}
+
             {/* Custom CSS Injection */}
             {isCustom && customTheme.customCss && (
                 <style dangerouslySetInnerHTML={{ __html: customTheme.customCss }} />
@@ -89,10 +140,21 @@ export default async function PublicProfilePage({
 			
 			<div className="max-w-[680px] w-full mx-auto relative z-10 flex-1 flex flex-col">
 				{/* Profile Header */}
-				<div className="flex flex-col items-center text-center space-y-4 mb-10">
+				<div className="profile-header flex flex-col items-center text-center space-y-4 mb-10">
 					<div 
-                        className="w-24 h-24 rounded-full flex items-center justify-center overflow-hidden border-[length:inherit]"
-                        style={{ backgroundColor: cardBg, borderColor: cardBorder }}
+                        className={cn(
+                            "profile-avatar w-24 h-24 flex items-center justify-center overflow-hidden border-[length:inherit] relative",
+                            avatarShape === 'circle' && "rounded-full",
+                            avatarShape === 'square' && "rounded-none",
+                            avatarShape === 'rounded' && "rounded-2xl",
+                            avatarShape === 'hidden' && "hidden"
+                        )}
+                        style={{ 
+                            backgroundColor: cardBg, 
+                            borderColor: avatarBorderColor,
+                            borderWidth: avatarBorderSize,
+                            borderStyle: 'solid'
+                        }}
                     >
 						{page.avatarUrl ? (
 							<div className="relative w-full h-full">
@@ -123,7 +185,7 @@ export default async function PublicProfilePage({
 							pageId={page.id}
 							linkId={link.id}
 							className={cn(
-								"group relative flex items-center justify-between p-4 px-6 shadow-sm hover:scale-[1.02] transition-all duration-300 border-[length:inherit]",
+								"link-card group relative flex items-center justify-between p-4 px-6 shadow-sm hover:scale-[1.02] transition-all duration-300 border-[length:inherit]",
                                 isCustom && customTheme.buttonStyle === 'shadow' && "shadow-[0_6px_0_0_rgba(0,0,0,0.1)]"
 							)}
                             style={{
@@ -135,12 +197,12 @@ export default async function PublicProfilePage({
 						>
 							<div className="flex items-center gap-4">
 								<div 
-                                    className="w-10 h-10 rounded-full flex items-center justify-center transition-colors"
+                                    className="social-icon w-10 h-10 rounded-full flex items-center justify-center transition-colors"
                                     style={{ backgroundColor: theme.type === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }}
                                 >
 									<ExternalLink className="w-4 h-4" style={{ color: isCustom ? buttonText : 'var(--theme-muted)' }} />
 								</div>
-								<span className="font-semibold text-[15px]">{link.title}</span>
+								<span className="link-title font-semibold text-[15px]">{link.title}</span>
 							</div>
 							<div className="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all font-bold">
 								<ArrowUpRightIcon />

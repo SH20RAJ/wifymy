@@ -163,11 +163,21 @@ export function getTheme(id: string): Theme {
 
 export const defaultCustomTheme: CustomTheme = {
     backgroundType: 'solid',
-    backgroundValue: '#fafafa',
-    fontFamily: 'var(--font-outfit), sans-serif',
-    textColor: '#111827',
-    buttonStyle: 'flat',
-    buttonColor: '#111827',
+    backgroundValue: '#ffffff',
+    backgroundSize: 'cover',
+    backgroundRepeat: 'no-repeat',
+    backgroundOverlay: 'rgba(0,0,0,0)',
+    buttonColor: '#000000',
     buttonTextColor: '#ffffff',
+    buttonStyle: 'flat',
     buttonRadius: '12px',
+    textColor: '#000000',
+    fontFamily: 'var(--font-outfit), sans-serif',
+    avatarStyle: 'circle',
+    avatarBorderColor: '#000000',
+    avatarBorderSize: '0px',
+    avatarBorderRadius: '50%',
+    seoTitle: '',
+    seoDescription: '',
+    customCss: ''
 };

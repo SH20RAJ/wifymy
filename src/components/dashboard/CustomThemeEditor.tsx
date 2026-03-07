@@ -7,6 +7,8 @@ import {
     MousePointer2, 
     ChevronDown,
     Zap,
+    Layout,
+    ImageIcon,
     Type as TypeIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -108,17 +110,110 @@ export default function CustomThemeEditor({
                         )}
 
                         {customTheme.backgroundType === 'image' && (
-                            <div className="flex flex-col gap-1.5">
-                                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Image URL</label>
-                                <input 
-                                    type="text" 
-                                    value={customTheme.backgroundValue}
-                                    onChange={(e) => updateTheme({ backgroundValue: e.target.value })}
-                                    className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm"
-                                    placeholder="https://images.unsplash.com/..."
-                                />
+                            <div className="space-y-4">
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Image URL</label>
+                                    <input 
+                                        type="text" 
+                                        value={customTheme.backgroundValue}
+                                        onChange={(e) => updateTheme({ backgroundValue: e.target.value })}
+                                        className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm"
+                                        placeholder="https://images.unsplash.com/..."
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Size</label>
+                                        <select 
+                                            value={customTheme.backgroundSize || 'cover'}
+                                            onChange={(e) => updateTheme({ backgroundSize: e.target.value as 'cover' | 'contain' | 'auto' })}
+                                            className="h-10 px-3 rounded-lg border border-border bg-background text-xs"
+                                        >
+                                            <option value="cover">Cover</option>
+                                            <option value="contain">Contain</option>
+                                            <option value="auto">Auto</option>
+                                        </select>
+                                    </div>
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Repeat</label>
+                                        <select 
+                                            value={customTheme.backgroundRepeat || 'no-repeat'}
+                                            onChange={(e) => updateTheme({ backgroundRepeat: e.target.value as 'no-repeat' | 'repeat' | 'repeat-x' | 'repeat-y' })}
+                                            className="h-10 px-3 rounded-lg border border-border bg-background text-xs"
+                                        >
+                                            <option value="no-repeat">No Repeat</option>
+                                            <option value="repeat">Repeat</option>
+                                            <option value="repeat-x">Repeat X</option>
+                                            <option value="repeat-y">Repeat Y</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Overlay Color (RGBA)</label>
+                                    <input 
+                                        type="text" 
+                                        value={customTheme.backgroundOverlay || 'rgba(0,0,0,0)'}
+                                        onChange={(e) => updateTheme({ backgroundOverlay: e.target.value })}
+                                        className="h-10 px-3 rounded-lg border border-border bg-background font-mono text-xs"
+                                        placeholder="rgba(0,0,0,0.3)"
+                                    />
+                                </div>
                             </div>
                         )}
+                    </div>
+                </div>
+            </Section>
+
+            {/* Avatar Section */}
+            <Section title="Profile Image" icon={ImageIcon}>
+                <div className="space-y-6">
+                    <div className="space-y-3">
+                        <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Shape</label>
+                        <div className="grid grid-cols-4 gap-2">
+                            {(['circle', 'square', 'rounded', 'hidden'] as const).map((style) => (
+                                <button
+                                    key={style}
+                                    onClick={() => updateTheme({ avatarStyle: style })}
+                                    className={cn(
+                                        "aspect-square flex flex-col items-center justify-center border rounded-lg transition-all gap-1",
+                                        customTheme.avatarStyle === style 
+                                            ? "bg-primary/10 border-primary text-primary" 
+                                            : "bg-background border-border text-muted-foreground hover:border-primary/50"
+                                    )}
+                                >
+                                    <div className={cn(
+                                        "w-6 h-6 border-2 border-current",
+                                        style === 'circle' && "rounded-full",
+                                        style === 'square' && "rounded-none",
+                                        style === 'rounded' && "rounded-md",
+                                        style === 'hidden' && "border-dashed"
+                                    )} />
+                                    <span className="text-[10px] capitalize">{style}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Border Color</label>
+                            <input 
+                                type="color" 
+                                value={customTheme.avatarBorderColor || '#000000'}
+                                onChange={(e) => updateTheme({ avatarBorderColor: e.target.value })}
+                                className="w-full h-10 rounded-lg cursor-pointer bg-transparent"
+                            />
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Border Size</label>
+                            <input 
+                                type="text" 
+                                value={customTheme.avatarBorderSize || '0px'}
+                                onChange={(e) => updateTheme({ avatarBorderSize: e.target.value })}
+                                className="h-10 px-3 rounded-lg border border-border bg-background text-xs"
+                                placeholder="2px"
+                            />
+                        </div>
                     </div>
                 </div>
             </Section>
@@ -218,12 +313,64 @@ export default function CustomThemeEditor({
                             onChange={(e) => updateTheme({ fontFamily: e.target.value })}
                             className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm"
                         >
-                            <option value="var(--font-outfit), sans-serif">Outfit (Default)</option>
-                            <option value="sans-serif">Standard Sans</option>
-                            <option value="serif">Classic Serif</option>
-                            <option value="monospace">Mono</option>
-                            <option value="'Inter', sans-serif">Inter</option>
+                            <optgroup label="Modern Sans-Serif">
+                                <option value="var(--font-outfit), sans-serif">Outfit (Signature)</option>
+                                <option value="'Inter', sans-serif">Inter (Clean)</option>
+                                <option value="'Manrope', sans-serif">Manrope (Modern)</option>
+                                <option value="'Plus Jakarta Sans', sans-serif">Jakarta (Premium)</option>
+                            </optgroup>
+                            <optgroup label="Classic & Serif">
+                                <option value="'Playfair Display', serif">Playfair (Elegant)</option>
+                                <option value="'Lora', serif">Lora (Classic)</option>
+                                <option value="serif">System Serif</option>
+                            </optgroup>
+                            <optgroup label="Unique & Brand">
+                                <option value="'Syne', sans-serif">Syne (Artistic)</option>
+                                <option value="'Space Grotesk', sans-serif">Space (Tech)</option>
+                                <option value="monospace">System Mono</option>
+                            </optgroup>
                         </select>
+                    </div>
+                </div>
+            </Section>
+
+            {/* SEO Section */}
+            <Section title="SEO & Social Presence" icon={Layout}>
+                <div className="space-y-4">
+                    <p className="text-[10px] text-muted-foreground leading-relaxed">
+                        Customize how your page appears on Google, Twitter, and WhatsApp for maximum reach.
+                    </p>
+                    <div className="space-y-3">
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Custom SEO Title</label>
+                            <input 
+                                type="text" 
+                                value={customTheme.seoTitle || ''}
+                                onChange={(e) => updateTheme({ seoTitle: e.target.value })}
+                                className="h-10 px-3 rounded-lg border border-border bg-background text-xs"
+                                placeholder="Mastering the Web | My Portfolio"
+                            />
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Meta Description</label>
+                            <textarea 
+                                value={customTheme.seoDescription || ''}
+                                onChange={(e) => updateTheme({ seoDescription: e.target.value })}
+                                rows={3}
+                                className="w-full p-3 rounded-lg border border-border bg-background text-xs"
+                                placeholder="The ultimate link-in-bio for creators and developers."
+                            />
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Social Share Image URL</label>
+                            <input 
+                                type="text" 
+                                value={customTheme.socialImage || ''}
+                                onChange={(e) => updateTheme({ socialImage: e.target.value })}
+                                className="h-10 px-3 rounded-lg border border-border bg-background text-xs"
+                                placeholder="https://..."
+                            />
+                        </div>
                     </div>
                 </div>
             </Section>
@@ -231,15 +378,31 @@ export default function CustomThemeEditor({
             {/* Advanced Section */}
             <Section title="Custom CSS (Pro)" icon={Zap}>
                 <div className="space-y-4">
-                    <p className="text-[10px] text-muted-foreground leading-relaxed">
-                        Add custom CSS to overwrite any part of your profile. Use securely as a pro user.
-                    </p>
+                    <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 space-y-2">
+                        <h4 className="text-[10px] font-bold text-primary uppercase tracking-widest flex items-center gap-1.5">
+                            <Layout className="w-3 h-3" /> CSS Class Documentation
+                        </h4>
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-1 font-mono text-[9px] text-muted-foreground">
+                            <span>.profile-avatar</span>
+                            <span>Profile Image</span>
+                            <span>.profile-header</span>
+                            <span>Name & Bio Section</span>
+                            <span>.link-card</span>
+                            <span>Individual Link Card</span>
+                            <span>.link-title</span>
+                            <span>Link Text</span>
+                            <span>.social-icon</span>
+                            <span>The Link Icon</span>
+                            <span>.footer-branding</span>
+                            <span>Wify Logo Section</span>
+                        </div>
+                    </div>
                     <textarea 
                         value={customTheme.customCss}
                         onChange={(e) => updateTheme({ customCss: e.target.value })}
                         rows={4}
                         className="w-full p-3 rounded-lg border border-border bg-background font-mono text-xs placeholder:text-muted-foreground"
-                        placeholder=".link-card { border: 2px solid neon; }"
+                        placeholder=".link-card { transition: 0.5s; } .link-card:hover { transform: rotate(1deg); }"
                     />
                 </div>
             </Section>
