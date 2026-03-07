@@ -5,7 +5,15 @@ if (!process.env.MONGODB_URI) {
 }
 
 const uri = process.env.MONGODB_URI;
-const options = {};
+// Optimization for serverless: 
+// 1. Connect timeout to prevent hanging
+// 2. Server selection timeout
+// 3. Socket timeout
+const options = {
+    connectTimeoutMS: 5000,
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 30000,
+};
 
 let client: MongoClient;
 let clientPromise: Promise<MongoClient>;
