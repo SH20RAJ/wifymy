@@ -1,3 +1,7 @@
+import { type CustomTheme } from '@/app/actions/pages';
+
+export type { CustomTheme };
+
 export type Theme = {
   id: string;
   name: string;
@@ -156,3 +160,14 @@ export const themes: Theme[] = [
 export function getTheme(id: string): Theme {
   return themes.find((t) => t.id === id) || themes[0];
 }
+
+export const defaultCustomTheme: CustomTheme = {
+    backgroundType: 'solid',
+    backgroundValue: '#fafafa',
+    fontFamily: 'var(--font-outfit), sans-serif',
+    textColor: '#111827',
+    buttonStyle: 'flat',
+    buttonColor: '#111827',
+    buttonTextColor: '#ffffff',
+    buttonRadius: '12px',
+};

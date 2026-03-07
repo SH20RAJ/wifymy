@@ -7,6 +7,7 @@ import { getCollection } from "@/lib/mongodb";
 import { AnalyticsTracker } from "@/components/AnalyticsTracker";
 import { TrackedLink } from "@/components/TrackedLink";
 import { ThemeEffects } from "@/components/ThemeEffects";
+import { type MongoPage } from "@/app/actions/pages";
 import Image from "next/image";
 
 export default async function PublicProfilePage({
@@ -21,8 +22,8 @@ export default async function PublicProfilePage({
 	}
 
     // Fetch page by slug from MongoDB
-    const pages = await getCollection("pages");
-    const page = await pages.findOne({ slug: username });
+    const pagesCollection = await getCollection<MongoPage>("pages");
+    const page = await pagesCollection.findOne({ slug: username });
     if (!page) {
         notFound();
     }
@@ -33,26 +34,55 @@ export default async function PublicProfilePage({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const activeLinks = pageLinks.filter((l) => (l as any).isActive);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const theme = getTheme((page as any).themeId || "minimalist");
+    const theme = getTheme(page.themeId || "minimalist");
+    const customTheme = page.customTheme;
+    const isCustom = page.themeId === 'custom' && !!customTheme;
+
+    // Determine effective styles
+    const background = isCustom ? (
+        customTheme.backgroundType === 'gradient' ? customTheme.backgroundValue : 
+        customTheme.backgroundType === 'image' ? `url(${customTheme.backgroundValue}) center/cover no-repeat` : 
+        customTheme.backgroundValue
+    ) : theme.style.background;
+
+    const textColor = isCustom ? customTheme.textColor : theme.style.text;
+    const buttonBg = isCustom ? customTheme.buttonColor : theme.style.button;
+    const buttonText = isCustom ? customTheme.buttonTextColor : theme.style.buttonText;
+    const buttonRadiusValue = isCustom ? customTheme.buttonRadius : '12px';
+    const fontFamily = isCustom ? customTheme.fontFamily : theme.style.fontFamily;
+    
+    const cardBg = isCustom ? (
+        customTheme.buttonStyle === 'glass' ? 'rgba(255,255,255,0.1)' : 
+        customTheme.buttonStyle === 'soft' ? `${customTheme.buttonColor}15` : 
+        customTheme.buttonStyle === 'outline' ? 'transparent' : customTheme.buttonColor
+    ) : theme.style.card;
+
+    const cardBorder = isCustom ? (
+        customTheme.buttonStyle === 'outline' ? customTheme.buttonColor : 
+        customTheme.buttonStyle === 'glass' ? 'rgba(255,255,255,0.2)' : 'transparent'
+    ) : theme.style.cardBorder;
 
 	return (
 		<div 
             className="min-h-dvh flex flex-col pt-16 pb-8 px-4 sm:px-6 relative selection:bg-black selection:text-white"
             style={{
-                background: theme.style.background,
-                color: theme.style.text,
-                fontFamily: theme.style.fontFamily,
-                '--theme-muted': theme.style.textMuted,
-                '--theme-card': theme.style.card,
-                '--theme-border': theme.style.cardBorder,
-                '--theme-btn': theme.style.button,
-                '--theme-btn-text': theme.style.buttonText,
-                '--theme-btn-hover': theme.style.buttonHover,
+                background: background,
+                color: textColor,
+                fontFamily: fontFamily,
+                '--theme-muted': `${textColor}99`,
+                '--theme-card': cardBg,
+                '--theme-border': cardBorder,
+                '--theme-btn': buttonBg,
+                '--theme-btn-text': buttonText,
             } as React.CSSProperties}
         >
 			<AnalyticsTracker pageId={page.id} />
-            <ThemeEffects theme={theme} />
+            {!isCustom && <ThemeEffects theme={theme} />}
+            
+            {/* Custom CSS Injection */}
+            {isCustom && customTheme.customCss && (
+                <style dangerouslySetInnerHTML={{ __html: customTheme.customCss }} />
+            )}
 			
 			{/* Decorative Theme Elements */}
 			<div className="absolute top-0 right-0 w-[600px] h-[600px] bg-white/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 opacity-50 pointer-events-none" />
@@ -62,7 +92,7 @@ export default async function PublicProfilePage({
 				<div className="flex flex-col items-center text-center space-y-4 mb-10">
 					<div 
                         className="w-24 h-24 rounded-full flex items-center justify-center overflow-hidden border-[length:inherit]"
-                        style={{ backgroundColor: 'var(--theme-card)', borderColor: 'var(--theme-border)' }}
+                        style={{ backgroundColor: cardBg, borderColor: cardBorder }}
                     >
 						{page.avatarUrl ? (
 							<div className="relative w-full h-full">
@@ -93,11 +123,14 @@ export default async function PublicProfilePage({
 							pageId={page.id}
 							linkId={link.id}
 							className={cn(
-								"group relative flex items-center justify-between p-4 px-6 rounded-2xl shadow-sm hover:scale-[1.02] transition-all duration-300 border-[length:inherit]"
+								"group relative flex items-center justify-between p-4 px-6 shadow-sm hover:scale-[1.02] transition-all duration-300 border-[length:inherit]",
+                                isCustom && customTheme.buttonStyle === 'shadow' && "shadow-[0_6px_0_0_rgba(0,0,0,0.1)]"
 							)}
                             style={{
-                                backgroundColor: 'var(--theme-card)',
-                                borderColor: 'var(--theme-border)',
+                                backgroundColor: isCustom ? (customTheme.buttonStyle === 'outline' ? 'transparent' : buttonBg) : 'var(--theme-card)',
+                                borderColor: isCustom ? buttonBg : 'var(--theme-border)',
+                                borderRadius: buttonRadiusValue,
+                                color: isCustom ? buttonText : 'inherit'
                             }}
 						>
 							<div className="flex items-center gap-4">
@@ -105,7 +138,7 @@ export default async function PublicProfilePage({
                                     className="w-10 h-10 rounded-full flex items-center justify-center transition-colors"
                                     style={{ backgroundColor: theme.type === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }}
                                 >
-									<ExternalLink className="w-4 h-4" style={{ color: 'var(--theme-muted)' }} />
+									<ExternalLink className="w-4 h-4" style={{ color: isCustom ? buttonText : 'var(--theme-muted)' }} />
 								</div>
 								<span className="font-semibold text-[15px]">{link.title}</span>
 							</div>
@@ -122,8 +155,8 @@ export default async function PublicProfilePage({
                         href="/" 
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-colors border-[length:inherit]"
                         style={{
-                            backgroundColor: 'var(--theme-card)',
-                            borderColor: 'var(--theme-border)',
+                            backgroundColor: cardBg,
+                            borderColor: cardBorder,
                             color: 'var(--theme-muted)'
                         }}
                     >

@@ -10,6 +10,21 @@ export interface MongoUser {
     createdAt: Date;
 }
 
+export interface CustomTheme {
+    backgroundType: 'solid' | 'gradient' | 'image' | 'video';
+    backgroundValue: string;
+    backgroundOverlay?: number;
+    fontFamily: string;
+    textColor: string;
+    buttonStyle: 'flat' | 'shadow' | 'outline' | 'soft' | 'glass';
+    buttonColor: string;
+    buttonTextColor: string;
+    buttonRadius: string;
+    buttonBorderWidth?: string;
+    buttonShadowColor?: string;
+    customCss?: string;
+}
+
 export interface MongoPage {
     id: string; // UUID or ObjectId as string
     userId: string;
@@ -18,6 +33,7 @@ export interface MongoPage {
     bio?: string;
     avatarUrl?: string;
     themeId: string;
+    customTheme?: CustomTheme;
     createdAt: Date;
 }
 
@@ -96,6 +112,19 @@ export async function updatePageTheme(pageId: string, themeId: string) {
     await pages.updateOne(
         { id: pageId, userId: user.id },
         { $set: { themeId } }
+    );
+
+    revalidatePath("/dashboard");
+}
+
+export async function updatePageCustomTheme(pageId: string, customTheme: CustomTheme) {
+    const user = await stackServerApp.getUser();
+    if (!user) throw new Error("Unauthorized");
+
+    const pages = await getCollection<MongoPage>("pages");
+    await pages.updateOne(
+        { id: pageId, userId: user.id },
+        { $set: { customTheme } }
     );
 
     revalidatePath("/dashboard");
