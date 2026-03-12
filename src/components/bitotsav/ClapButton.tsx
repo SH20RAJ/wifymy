@@ -59,7 +59,7 @@ export default function ClapButton({ initialClaps }: { initialClaps: number }) {
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={handleClap}
-                    className="w-24 h-24 rounded-full bg-gradient-to-tr from-orange-500 to-yellow-400 shadow-xl flex items-center justify-center text-4xl border-4 border-white/20 hover:border-white/50 transition-all group"
+                    className="w-24 h-24 rounded-full bg-linear-to-tr from-orange-500 to-yellow-400 shadow-xl flex items-center justify-center text-4xl border-4 border-white/20 hover:border-white/50 transition-all group"
                 >
                     <motion.span
                         animate={isClapping ? { scale: [1, 1.4, 1] } : {}}
