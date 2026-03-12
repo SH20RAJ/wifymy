@@ -3,12 +3,9 @@
 import { useState, useEffect } from 'react';
 import { Instagram, MessageCircle, Unlock, Lock, Timer, Zap, ShieldCheck } from 'lucide-react';
 import ClapButton from '@/components/bitotsav/ClapButton';
-import AnalyticsTracker from '@/components/analytics/AnalyticsTracker';
 import { motion } from 'framer-motion';
 
 export default function BitotsavClient({ initialClaps }: { initialClaps: number }) {
-    const staticPageId = "bitotsav-minimal-v1";
-
     // Timer logic for the official website link
     const [timeLeft, setTimeLeft] = useState<number>(3600); // 1 hour in seconds
     const [isLinkEnabled, setIsLinkEnabled] = useState(false);
@@ -34,7 +31,6 @@ export default function BitotsavClient({ initialClaps }: { initialClaps: number 
 
     return (
         <div className="min-h-screen bg-[#0A0A0A] text-white selection:bg-white selection:text-black overflow-hidden font-sans">
-            <AnalyticsTracker pageId={staticPageId} />
             
             {/* Subtle Gradient Glow */}
             <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-white/[0.02] blur-[120px] pointer-events-none" />
