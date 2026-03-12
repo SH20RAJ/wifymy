@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { incrementClaps } from '@/app/actions/bitotsav';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function ClapButton({ initialClaps, slug }: { initialClaps: number, slug: string }) {
+export default function ClapButton({ initialClaps }: { initialClaps: number }) {
     const [claps, setClaps] = useState(initialClaps);
     const [isClapping, setIsClapping] = useState(false);
     const [particles, setParticles] = useState<{ id: number, x: number, y: number }[]>([]);
@@ -25,7 +25,7 @@ export default function ClapButton({ initialClaps, slug }: { initialClaps: numbe
         }, 1000);
 
         try {
-            await incrementClaps(slug);
+            await incrementClaps();
         } catch (error) {
             console.error("Failed to sync claps", error);
         }

@@ -1,24 +1,25 @@
 'use server';
 
 import { db } from "@/db";
-import { pages } from "@/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { claps, pages } from "@/db/schema";
+import { eq, sql, count } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 export async function incrementClaps(slug: string) {
-    try {
-        await db.update(pages)
-            .set({ 
-                claps: sql`${pages.claps} + 1` 
-            })
-            .where(eq(pages.slug, slug));
-        
-        revalidatePath(`/bitotsav`);
-        return { success: true };
-    } catch (error) {
-        console.error("Error incrementing claps:", error);
-        return { success: false, error: "Failed to update claps" };
-    }
+    const page = await db.query.pages.findFirst({
+        where: eq(pages.slug, slug)
+    });
+
+    if (!page) throw new Error("Page not found");
+
+    await db.insert(claps).values({
+        id: crypto.randomUUID(),
+        pageId: page.id,
+        createdAt: new Date()
+    });
+
+    revalidatePath('/bitotsav');
+    revalidatePath(`/${slug}`);
 }
 
 export async function getBitotsavData() {

@@ -16,7 +16,11 @@ export const pages = pgTable('pages', {
   avatarUrl: text('avatar_url'),
   themeId: text('theme_id').default('minimalist').notNull(),
   customTheme: jsonb('custom_theme'),
-  claps: integer('claps').default(0).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const bitotsavClaps = pgTable('bitotsav_claps', {
+  id: text('id').primaryKey(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 

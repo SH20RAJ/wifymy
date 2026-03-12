@@ -24,7 +24,6 @@ async function seedBitotsav() {
             displayName: 'Bitotsav 2026',
             bio: 'The biggest cultural fest of East India is back! 🎊 👏',
             themeId: 'minimalist',
-            claps: 0,
             createdAt: new Date()
         });
         console.log("Bitotsav page seeded!");
