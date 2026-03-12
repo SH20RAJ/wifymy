@@ -6,19 +6,6 @@ import ClapButton from '@/components/bitotsav/ClapButton';
 import { motion } from 'framer-motion';
 
 export default function BitotsavClient({ initialClaps }: { initialClaps: number }) {
-    // Timer logic for the official website link
-    const [timeLeft, setTimeLeft] = useState<number>(0);
-    const [isLinkEnabled, setIsLinkEnabled] = useState(true);
-
-    useEffect(() => {
-        // Portal is now unlocked
-    }, []);
-
-    const formatTime = (seconds: number) => {
-        const m = Math.floor((seconds % 3600) / 60);
-        const s = seconds % 60;
-        return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-    };
 
     return (
         <div className="min-h-screen bg-[#0A0A0A] text-white selection:bg-white selection:text-black overflow-hidden font-sans">
@@ -134,6 +121,7 @@ export default function BitotsavClient({ initialClaps }: { initialClaps: number 
                     <footer className="w-full pt-16 flex flex-col items-center space-y-12">
                         <div className="opacity-40 hover:opacity-100 transition-opacity duration-500 transform scale-75 md:scale-90">
                             <a href="https://visitorbadge.io/status?path=https%3A%2F%2Fwify.my%2Fbitotsav">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img src="https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fwify.my%2Fbitotsav&countColor=%23263759" alt="Visitor Badge" className="mx-auto grayscale" />
                             </a>
                         </div>
