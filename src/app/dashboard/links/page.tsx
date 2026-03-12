@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import { stackServerApp } from "@/stack/server";
-import { getCollection } from "@/lib/mongodb";
+import { getPageByIdForUser } from "@/app/actions/pages";
+import { getLinksForPage } from "@/app/actions/links";
 import LinksClient from "./LinksClient";
 
 export default async function LinksPage(props: { searchParams: Promise<{ page?: string }> }) {
@@ -8,35 +8,32 @@ export default async function LinksPage(props: { searchParams: Promise<{ page?: 
     const pageId = searchParams.page;
     if (!pageId) return redirect("/dashboard");
 
-    const user = await stackServerApp.getUser();
-    if (!user) return redirect("/dashboard");
+    try {
+        const page = await getPageByIdForUser(pageId);
+        if (!page) return redirect("/dashboard");
 
-    const pages = await getCollection("pages");
-    const page = await pages.findOne({ id: pageId, userId: user.id });
-    if (!page) return redirect("/dashboard");
-
-    const linksCollection = await getCollection("links");
-    const pageLinks = await linksCollection.find({ pageId: pageId }).sort({ order: 1 }).toArray();
+        const pageLinks = await getLinksForPage(pageId);
 
     const sanitizedPage = {
-        id: page.id as string,
-        slug: page.slug as string,
-        displayName: (page.displayName || null) as string | null,
-        bio: (page.bio || null) as string | null,
-        avatarUrl: (page.avatarUrl || null) as string | null,
-        themeId: (page.themeId || "minimalist") as string | null,
+        id: page.id,
+        slug: page.slug,
+        displayName: page.displayName,
+        bio: page.bio,
+        avatarUrl: page.avatarUrl,
+        themeId: page.themeId || "minimalist",
     };
 
-    const sanitizedLinks = pageLinks.map((l) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const link = l as any;
+    const sanitizedLinks = pageLinks.map((link) => {
         return {
-            id: link.id as string,
-            title: link.title as string,
-            url: link.url as string,
-            isActive: (link.isActive ?? true) as boolean
+            id: link.id,
+            title: link.title,
+            url: link.url,
+            isActive: link.isActive ?? true
         };
     });
 
     return <LinksClient initialPage={sanitizedPage} initialLinks={sanitizedLinks} />;
+    } catch {
+        return redirect("/dashboard");
+    }
 }

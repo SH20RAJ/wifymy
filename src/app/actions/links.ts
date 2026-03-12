@@ -1,37 +1,39 @@
 'use server';
 
-import { getCollection } from "@/lib/mongodb";
+import { db } from "@/db";
+import { links } from "@/db/schema";
 import { stackServerApp } from "@/stack/server";
 import { revalidatePath } from "next/cache";
-
-export interface MongoLink {
-    id: string;
-    pageId: string;
-    title: string;
-    url: string;
-    icon?: string;
-    order: number;
-    isActive: boolean;
-    createdAt: Date;
-}
+import { eq, asc } from "drizzle-orm";
 
 export async function getLinksForPage(pageId: string) {
     const user = await stackServerApp.getUser();
     if (!user) throw new Error("Unauthorized");
 
-    const links = await getCollection<MongoLink>("links");
-    return await links.find({ pageId }).sort({ order: 1 }).toArray();
+    return await db.query.links.findMany({
+        where: eq(links.pageId, pageId),
+        orderBy: [asc(links.order)]
+    });
+}
+
+export async function getActiveLinksByPageId(pageId: string) {
+    const allLinks = await db.query.links.findMany({
+        where: eq(links.pageId, pageId),
+        orderBy: [asc(links.order)]
+    });
+    return allLinks.filter(l => l.isActive);
 }
 
 export async function addLink(pageId: string, title: string, url: string) {
     const user = await stackServerApp.getUser();
     if (!user) throw new Error("Unauthorized");
 
-    const links = await getCollection<MongoLink>("links");
-    
     // Get current max order
-    const pageLinks = await links.find({ pageId }).toArray();
-    const maxOrder = pageLinks.length > 0 ? Math.max(...pageLinks.map(l => l.order || 0)) : -1;
+    const pageLinks = await db.query.links.findMany({
+        where: eq(links.pageId, pageId)
+    });
+    
+    const maxOrder = pageLinks.length > 0 ? Math.max(...pageLinks.map(l => l.order)) : -1;
 
     try {
         const newLink = {
@@ -43,7 +45,8 @@ export async function addLink(pageId: string, title: string, url: string) {
             isActive: true,
             createdAt: new Date(),
         };
-        await links.insertOne(newLink as MongoLink);
+        
+        await db.insert(links).values(newLink);
         revalidatePath("/dashboard/links");
         return { success: true, link: newLink };
     } catch (error) {
@@ -55,11 +58,9 @@ export async function updateLink(linkId: string, data: { title?: string, url?: s
     const user = await stackServerApp.getUser();
     if (!user) throw new Error("Unauthorized");
     
-    const links = await getCollection<MongoLink>("links");
-    await links.updateOne(
-        { id: linkId },
-        { $set: data }
-    );
+    await db.update(links)
+        .set(data)
+        .where(eq(links.id, linkId));
         
     revalidatePath("/dashboard/links");
 }
@@ -68,8 +69,7 @@ export async function deleteLink(linkId: string) {
     const user = await stackServerApp.getUser();
     if (!user) throw new Error("Unauthorized");
 
-    const links = await getCollection<MongoLink>("links");
-    await links.deleteOne({ id: linkId });
+    await db.delete(links).where(eq(links.id, linkId));
     
     revalidatePath("/dashboard/links");
 }
@@ -78,15 +78,14 @@ export async function reorderLinks(pageId: string, orderedLinkIds: string[]) {
     const user = await stackServerApp.getUser();
     if (!user) throw new Error("Unauthorized");
 
-    const links = await getCollection<MongoLink>("links");
-    
-    // Use bulkWrite for efficiency if possible, or simple loop for now
-    for (let i = 0; i < orderedLinkIds.length; i++) {
-        await links.updateOne(
-            { id: orderedLinkIds[i], pageId },
-            { $set: { order: i } }
-        );
-    }
+    // Use a transaction for bulk update efficiency
+    await db.transaction(async (tx) => {
+        for (let i = 0; i < orderedLinkIds.length; i++) {
+            await tx.update(links)
+                .set({ order: i })
+                .where(eq(links.id, orderedLinkIds[i]));
+        }
+    });
     
     revalidatePath("/dashboard/links");
 }

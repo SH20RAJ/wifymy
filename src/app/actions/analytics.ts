@@ -1,70 +1,74 @@
 'use server';
 
-import { getCollection } from "@/lib/mongodb";
+import { db } from "@/db";
+import { analytics, pages, links } from "@/db/schema";
 import { stackServerApp } from "@/stack/server";
-
-export interface MongoAnalytics {
-    id: string;
-    pageId: string;
-    linkId?: string;
-    type: 'VIEW' | 'CLICK';
-    userAgent?: string;
-    referrer?: string;
-    deviceType?: string;
-    createdAt: Date;
-}
+import { eq, sql, count, desc } from "drizzle-orm";
 
 export async function getAnalyticsSummary(pageId: string) {
     const user = await stackServerApp.getUser();
     if (!user) throw new Error("Unauthorized");
 
-    const pages = await getCollection("pages");
-    const page = await pages.findOne({ id: pageId });
+    const page = await db.query.pages.findFirst({
+        where: eq(pages.id, pageId)
+    });
 
     if (!page || page.userId !== user.id) {
         throw new Error("Unauthorized page access");
     }
 
-    const analytics = await getCollection<MongoAnalytics>("analytics");
-
     // Get total views
-    const totalViews = await analytics.countDocuments({ pageId: pageId, type: 'VIEW' });
+    const viewsResult = await db.select({ value: count() })
+        .from(analytics)
+        .where(sql`${analytics.pageId} = ${pageId} AND ${analytics.type} = 'VIEW'`);
+    const totalViews = viewsResult[0].value;
     
     // Get total clicks
-    const totalClicks = await analytics.countDocuments({ pageId: pageId, type: 'CLICK' });
+    const clicksResult = await db.select({ value: count() })
+        .from(analytics)
+        .where(sql`${analytics.pageId} = ${pageId} AND ${analytics.type} = 'CLICK'`);
+    const totalClicks = clicksResult[0].value;
 
-    // Get top links
-    const topLinksStats = await analytics.aggregate([
-        { $match: { pageId: pageId, type: 'CLICK', linkId: { $ne: null } } },
-        { $group: { _id: "$linkId", clicks: { $sum: 1 } } },
-        { $sort: { clicks: -1 } },
-        { $limit: 5 }
-    ]).toArray();
+    // Get top links (equivalent to MongoDB aggregate)
+    const topLinksStats = await db.select({
+            linkId: analytics.linkId,
+            clicks: count(analytics.id)
+        })
+        .from(analytics)
+        .where(sql`${analytics.pageId} = ${pageId} AND ${analytics.type} = 'CLICK' AND ${analytics.linkId} IS NOT NULL`)
+        .groupBy(analytics.linkId)
+        .orderBy(desc(count(analytics.id)))
+        .limit(5);
 
     const topLinksData = [];
     if (topLinksStats.length > 0) {
-        const linksCollection = await getCollection("links");
         for (const stat of topLinksStats) {
-            const linkDetail = await linksCollection.findOne({ id: stat._id });
+            if (!stat.linkId) continue;
+            const linkDetail = await db.query.links.findFirst({
+                where: eq(links.id, stat.linkId)
+            });
             if (linkDetail) {
                 topLinksData.push({
                     id: linkDetail.id,
                     title: linkDetail.title,
-                    clicks: stat.clicks
+                    clicks: Number(stat.clicks)
                 });
             }
         }
     }
 
     // Device breakdown
-    const devicesQuery = await analytics.aggregate([
-        { $match: { pageId: pageId } },
-        { $group: { _id: "$deviceType", count: { $sum: 1 } } }
-    ]).toArray();
+    const devicesQuery = await db.select({
+            deviceType: analytics.deviceType,
+            count: count(analytics.id)
+        })
+        .from(analytics)
+        .where(eq(analytics.pageId, pageId))
+        .groupBy(analytics.deviceType);
 
     const deviceBreakdown = devicesQuery.map(d => ({
-        deviceType: d._id,
-        count: d.count
+        deviceType: d.deviceType || 'Unknown',
+        count: Number(d.count)
     }));
 
     return {
@@ -76,10 +80,14 @@ export async function getAnalyticsSummary(pageId: string) {
 }
 
 export async function trackEvent(data: { pageId: string, linkId?: string, type: 'VIEW' | 'CLICK', userAgent?: string, referrer?: string, deviceType?: string }) {
-    const analytics = await getCollection<MongoAnalytics>("analytics");
-    await analytics.insertOne({
+    await db.insert(analytics).values({
         id: crypto.randomUUID(),
-        ...data,
+        pageId: data.pageId,
+        linkId: data.linkId || null,
+        type: data.type,
+        userAgent: data.userAgent || null,
+        referrer: data.referrer || null,
+        deviceType: data.deviceType || null,
         createdAt: new Date()
     });
 }

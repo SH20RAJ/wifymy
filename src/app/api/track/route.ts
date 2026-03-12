@@ -1,4 +1,5 @@
-import { getCollection } from "@/lib/mongodb";
+import { db } from "@/db";
+import { analytics } from "@/db/schema";
 import { NextRequest, NextResponse } from "next/server";
 
 interface TrackBody {
@@ -20,8 +21,7 @@ export async function POST(req: NextRequest) {
         const userAgent = (req.headers.get("user-agent") || "Unknown").substring(0, 255);
         const referrer = (req.headers.get("referer") || "Direct").substring(0, 255);
 
-        const analytics = await getCollection("analytics");
-        await analytics.insertOne({
+        await db.insert(analytics).values({
             id: crypto.randomUUID(),
             pageId,
             linkId: linkId || null,

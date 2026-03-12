@@ -2,8 +2,7 @@ import { generateLinks } from '@/lib/deep-links';
 import { headers } from 'next/headers';
 import { redirect, notFound } from 'next/navigation';
 import ClientRedirect from './client-redirect';
-import { getCollection } from '@/lib/mongodb';
-import { MongoDeeplink } from '@/app/actions/deeplinks';
+import { getDeeplinkBySlug } from '@/app/actions/deeplinks';
 
 // Force no caching for redirects to ensure User-Agent logic always runs
 export const dynamic = 'force-dynamic';
@@ -40,8 +39,7 @@ export default async function RedirectPage({
     }
 
     // 1. Check if this is a managed deeplink slug
-    const deeplinksCollection = await getCollection<MongoDeeplink>("deeplinks");
-    const managedLink = await deeplinksCollection.findOne({ slug: pathStr.toLowerCase() });
+    const managedLink = await getDeeplinkBySlug(pathStr);
 
     let finalUrl = pathStr;
     if (managedLink) {

@@ -1,48 +1,57 @@
 'use server';
 
-import { getCollection } from "@/lib/mongodb";
+import { db } from "@/db";
+import { deeplinks, pages } from "@/db/schema";
 import { stackServerApp } from "@/stack/server";
 import { revalidatePath } from "next/cache";
+import { eq, desc, and } from "drizzle-orm";
 
-export interface MongoDeeplink {
-    id: string;
-    userId: string;
-    slug: string;
-    destinationUrl: string;
-    createdAt: Date;
-}
+export type Deeplink = typeof deeplinks.$inferSelect;
 
 export async function getDeeplinks() {
     const user = await stackServerApp.getUser();
     if (!user) return [];
 
-    const collection = await getCollection<MongoDeeplink>("deeplinks");
-    return await collection.find({ userId: user.id }).sort({ createdAt: -1 }).toArray();
+    return await db.query.deeplinks.findMany({
+        where: eq(deeplinks.userId, user.id),
+        orderBy: [desc(deeplinks.createdAt)]
+    });
+}
+
+export async function getDeeplinkBySlug(slug: string) {
+    const cleanSlug = slug.toLowerCase().trim();
+    return await db.query.deeplinks.findFirst({
+        where: eq(deeplinks.slug, cleanSlug)
+    });
 }
 
 export async function createDeeplink(slug: string, destinationUrl: string) {
     const user = await stackServerApp.getUser();
     if (!user) throw new Error("Unauthorized");
 
-    const collection = await getCollection<MongoDeeplink>("deeplinks");
+    const cleanSlug = slug.toLowerCase().trim();
 
-    // Check if slug exists (managed or pages)
-    const existing = await collection.findOne({ slug });
-    if (existing) throw new Error("Slug already taken as a deeplink");
+    // Check if slug exists in deeplinks
+    const existingDeeplink = await db.query.deeplinks.findFirst({
+        where: eq(deeplinks.slug, cleanSlug)
+    });
+    if (existingDeeplink) throw new Error("Slug already taken as a deeplink");
 
-    const pages = await getCollection("pages");
-    const existingPage = await pages.findOne({ slug });
+    // Check if slug exists in pages
+    const existingPage = await db.query.pages.findFirst({
+        where: eq(pages.slug, cleanSlug)
+    });
     if (existingPage) throw new Error("Slug already taken as a profile page");
 
-    const newDeeplink: MongoDeeplink = {
+    const newDeeplink = {
         id: crypto.randomUUID(),
         userId: user.id,
-        slug: slug.toLowerCase().trim(),
+        slug: cleanSlug,
         destinationUrl: destinationUrl.trim(),
         createdAt: new Date()
     };
 
-    await collection.insertOne(newDeeplink);
+    await db.insert(deeplinks).values(newDeeplink);
     revalidatePath("/dashboard/deeplinks");
     return newDeeplink;
 }
@@ -51,7 +60,8 @@ export async function deleteDeeplink(id: string) {
     const user = await stackServerApp.getUser();
     if (!user) throw new Error("Unauthorized");
 
-    const collection = await getCollection<MongoDeeplink>("deeplinks");
-    await collection.deleteOne({ id, userId: user.id });
+    await db.delete(deeplinks)
+        .where(and(eq(deeplinks.id, id), eq(deeplinks.userId, user.id)));
+        
     revalidatePath("/dashboard/deeplinks");
 }

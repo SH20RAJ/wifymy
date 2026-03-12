@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import { stackServerApp } from "@/stack/server";
-import { getCollection } from "@/lib/mongodb";
+import { getPageByIdForUser } from "@/app/actions/pages";
+import { getLinksForPage } from "@/app/actions/links";
 import AppearanceClient from "./AppearanceClient";
 
 export default async function AppearancePage(props: { searchParams: Promise<{ page?: string }> }) {
@@ -8,35 +8,32 @@ export default async function AppearancePage(props: { searchParams: Promise<{ pa
     const pageId = searchParams.page;
     if (!pageId) return redirect("/dashboard");
 
-    const user = await stackServerApp.getUser();
-    if (!user) return redirect("/dashboard");
+    try {
+        const page = await getPageByIdForUser(pageId);
+        if (!page) return redirect("/dashboard");
 
-    const pages = await getCollection("pages");
-    const page = await pages.findOne({ id: pageId, userId: user.id });
-    if (!page) return redirect("/dashboard");
+        const pageLinks = await getLinksForPage(pageId);
 
-    const linksCollection = await getCollection("links");
-    const pageLinks = await linksCollection.find({ pageId: pageId }).sort({ order: 1 }).toArray();
-
-    const sanitizedPage = {
-        id: page.id as string,
-        slug: page.slug as string,
-        displayName: (page.displayName || null) as string | null,
-        bio: (page.bio || null) as string | null,
-        avatarUrl: (page.avatarUrl || null) as string | null,
-        themeId: (page.themeId || "minimalist") as string | null,
-    };
-
-    const sanitizedLinks = pageLinks.map((l) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const link = l as any;
-        return {
-            id: link.id as string,
-            title: link.title as string,
-            url: link.url as string,
-            isActive: (link.isActive ?? true) as boolean
+        const sanitizedPage = {
+            id: page.id,
+            slug: page.slug,
+            displayName: page.displayName,
+            bio: page.bio,
+            avatarUrl: page.avatarUrl,
+            themeId: page.themeId || "minimalist",
         };
-    });
 
-    return <AppearanceClient initialPage={sanitizedPage} initialLinks={sanitizedLinks} />;
+        const sanitizedLinks = pageLinks.map((link) => {
+            return {
+                id: link.id,
+                title: link.title,
+                url: link.url,
+                isActive: link.isActive ?? true
+            };
+        });
+
+        return <AppearanceClient initialPage={sanitizedPage} initialLinks={sanitizedLinks} />;
+    } catch {
+        return redirect("/dashboard");
+    }
 }

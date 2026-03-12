@@ -1,41 +1,73 @@
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
-import { sql } from 'drizzle-orm';
+import { pgTable, text, timestamp, boolean, integer, jsonb } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
 
-export const users = sqliteTable('users', {
-  id: text('id').primaryKey(), // using UUID string
-  email: text('email').unique().notNull(),
-  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`),
+export const users = pgTable('users', {
+  id: text('id').primaryKey(),
+  email: text('email').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
-export const pages = sqliteTable('pages', {
+export const pages = pgTable('pages', {
   id: text('id').primaryKey(),
-  userId: text('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
-  slug: text('slug').unique().notNull(), // Used for routing /[slug]
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  slug: text('slug').notNull().unique(),
   displayName: text('display_name'),
   bio: text('bio'),
   avatarUrl: text('avatar_url'),
-  themeId: text('theme_id').default('minimalist'),
-  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`),
+  themeId: text('theme_id').default('minimalist').notNull(),
+  customTheme: jsonb('custom_theme'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
-export const links = sqliteTable('links', {
+export const links = pgTable('links', {
   id: text('id').primaryKey(),
-  pageId: text('page_id').references(() => pages.id, { onDelete: 'cascade' }).notNull(),
+  pageId: text('page_id').notNull().references(() => pages.id, { onDelete: 'cascade' }),
   title: text('title').notNull(),
   url: text('url').notNull(),
-  icon: text('icon'), // e.g., 'instagram', 'youtube'
-  order: integer('order').default(0),
-  isActive: integer('is_active', { mode: 'boolean' }).default(true),
-  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`),
+  icon: text('icon'),
+  order: integer('order').default(0).notNull(),
+  isActive: boolean('is_active').default(true).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
-export const analytics = sqliteTable('analytics', {
+export const analytics = pgTable('analytics', {
   id: text('id').primaryKey(),
-  pageId: text('page_id').references(() => pages.id, { onDelete: 'cascade' }).notNull(),
-  linkId: text('link_id').references(() => links.id, { onDelete: 'cascade' }),
-  type: text('type').notNull(), // 'view' or 'click'
+  pageId: text('page_id').notNull().references(() => pages.id, { onDelete: 'cascade' }),
+  linkId: text('link_id').references(() => links.id, { onDelete: 'set null' }),
+  type: text('type').notNull(), // 'VIEW' | 'CLICK'
   userAgent: text('user_agent'),
   referrer: text('referrer'),
   deviceType: text('device_type'),
-  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
 });
+
+export const deeplinks = pgTable('deeplinks', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  slug: text('slug').notNull().unique(),
+  destinationUrl: text('destination_url').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Relations for easier querying
+export const usersRelations = relations(users, ({ many }) => ({
+  pages: many(pages),
+  deeplinks: many(deeplinks),
+}));
+
+export const pagesRelations = relations(pages, ({ one, many }) => ({
+  user: one(users, {
+    fields: [pages.userId],
+    references: [users.id],
+  }),
+  links: many(links),
+  analytics: many(analytics),
+}));
+
+export const linksRelations = relations(links, ({ one, many }) => ({
+  page: one(pages, {
+    fields: [links.pageId],
+    references: [pages.id],
+  }),
+  analytics: many(analytics),
+}));

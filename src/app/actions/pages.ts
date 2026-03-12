@@ -1,14 +1,10 @@
 'use server';
 
-import { getCollection } from "@/lib/mongodb";
+import { db } from "@/db";
+import { users, pages } from "@/db/schema";
 import { stackServerApp } from "@/stack/server";
 import { revalidatePath } from "next/cache";
-
-export interface MongoUser {
-    id: string;
-    email: string;
-    createdAt: Date;
-}
+import { eq, and } from "drizzle-orm";
 
 export interface CustomTheme {
     backgroundType: 'solid' | 'gradient' | 'image';
@@ -39,29 +35,32 @@ export interface CustomTheme {
     customCss?: string;
 }
 
-export interface MongoPage {
-    id: string; // UUID or ObjectId as string
-    userId: string;
-    slug: string;
-    displayName?: string;
-    bio?: string;
-    avatarUrl?: string;
-    themeId: string;
-    customTheme?: CustomTheme;
-    createdAt: Date;
-}
-
-// Sync user to MongoDB if they don't exist
+// Sync user to Postgres if they don't exist
 async function syncUser(userId: string, email: string) {
-    const users = await getCollection<MongoUser>("users");
-    const existingUser = await users.findOne({ id: userId });
-    if (!existingUser) {
-        await users.insertOne({
+    try {
+        await db.insert(users).values({
             id: userId,
             email: email,
             createdAt: new Date(),
-        });
+        }).onConflictDoNothing();
+    } catch (error) {
+        console.error("Error syncing user:", error);
     }
+}
+
+export async function getPageBySlug(slug: string) {
+    const cleanSlug = slug.toLowerCase();
+    return await db.query.pages.findFirst({
+        where: eq(pages.slug, cleanSlug)
+    });
+}
+
+export async function getPageByIdForUser(pageId: string) {
+    const user = await stackServerApp.getUser();
+    if (!user) throw new Error("Unauthorized");
+    return await db.query.pages.findFirst({
+        where: and(eq(pages.id, pageId), eq(pages.userId, user.id))
+    });
 }
 
 export async function getUserPages() {
@@ -70,8 +69,15 @@ export async function getUserPages() {
 
     await syncUser(user.id, user.primaryEmail || "");
 
-    const pages = await getCollection<MongoPage>("pages");
-    return await pages.find({ userId: user.id }).toArray();
+    const result = await db.query.pages.findMany({
+        where: eq(pages.userId, user.id)
+    });
+    
+    // Convert JSONB customTheme fallback
+    return result.map(p => ({
+        ...p,
+        customTheme: p.customTheme as CustomTheme | null | undefined
+    }));
 }
 
 export async function createPage(slug: string, displayName: string) {
@@ -81,16 +87,18 @@ export async function createPage(slug: string, displayName: string) {
     await syncUser(user.id, user.primaryEmail || "");
 
     const cleanSlug = slug.toLowerCase().replace(/[^a-z0-9-]/g, '-');
-    const pages = await getCollection<MongoPage>("pages");
 
     // Check if slug exists
-    const existing = await pages.findOne({ slug: cleanSlug });
+    const existing = await db.query.pages.findFirst({
+        where: eq(pages.slug, cleanSlug)
+    });
+    
     if (existing) {
         return { success: false, error: "Slug already taken." };
     }
 
     try {
-        await pages.insertOne({
+        await db.insert(pages).values({
             id: crypto.randomUUID(),
             userId: user.id,
             slug: cleanSlug,
@@ -109,11 +117,9 @@ export async function updatePageProfile(pageId: string, data: { displayName?: st
     const user = await stackServerApp.getUser();
     if (!user) throw new Error("Unauthorized");
 
-    const pages = await getCollection<MongoPage>("pages");
-    await pages.updateOne(
-        { id: pageId, userId: user.id },
-        { $set: { ...data } }
-    );
+    await db.update(pages)
+        .set(data)
+        .where(and(eq(pages.id, pageId), eq(pages.userId, user.id)));
 
     revalidatePath("/dashboard");
 }
@@ -122,11 +128,9 @@ export async function updatePageTheme(pageId: string, themeId: string) {
     const user = await stackServerApp.getUser();
     if (!user) throw new Error("Unauthorized");
 
-    const pages = await getCollection<MongoPage>("pages");
-    await pages.updateOne(
-        { id: pageId, userId: user.id },
-        { $set: { themeId } }
-    );
+    await db.update(pages)
+        .set({ themeId })
+        .where(and(eq(pages.id, pageId), eq(pages.userId, user.id)));
 
     revalidatePath("/dashboard");
 }
@@ -135,11 +139,10 @@ export async function updatePageCustomTheme(pageId: string, customTheme: CustomT
     const user = await stackServerApp.getUser();
     if (!user) throw new Error("Unauthorized");
 
-    const pages = await getCollection<MongoPage>("pages");
-    await pages.updateOne(
-        { id: pageId, userId: user.id },
-        { $set: { customTheme } }
-    );
+    // Drizzle handles JSONB updates automatically
+    await db.update(pages)
+        .set({ customTheme })
+        .where(and(eq(pages.id, pageId), eq(pages.userId, user.id)));
 
     revalidatePath("/dashboard");
 }

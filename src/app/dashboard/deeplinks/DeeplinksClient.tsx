@@ -1,14 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { createDeeplink, deleteDeeplink, MongoDeeplink } from '@/app/actions/deeplinks';
+import { createDeeplink, deleteDeeplink, type Deeplink } from '@/app/actions/deeplinks';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Trash2, Copy, Check, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export default function DeeplinksClient({ initialDeeplinks }: { initialDeeplinks: MongoDeeplink[] }) {
-    const [deeplinks, setDeeplinks] = useState<MongoDeeplink[]>(initialDeeplinks);
+export default function DeeplinksClient({ initialDeeplinks }: { initialDeeplinks: Deeplink[] }) {
+    const [deeplinks, setDeeplinks] = useState<Deeplink[]>(initialDeeplinks);
     const [slug, setSlug] = useState('');
     const [url, setUrl] = useState('');
     const [loading, setLoading] = useState(false);

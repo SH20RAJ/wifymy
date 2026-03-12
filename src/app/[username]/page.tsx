@@ -3,11 +3,11 @@ import { ExternalLink, Zap } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { getTheme } from "@/lib/themes";
-import { getCollection } from "@/lib/mongodb";
 import { AnalyticsTracker } from "@/components/AnalyticsTracker";
 import { TrackedLink } from "@/components/TrackedLink";
 import { ThemeEffects } from "@/components/ThemeEffects";
-import { type MongoPage } from "@/app/actions/pages";
+import { getPageBySlug, type CustomTheme } from "@/app/actions/pages";
+import { getActiveLinksByPageId } from "@/app/actions/links";
 import Image from "next/image";
 import { type Metadata } from "next";
 import { generateLinks } from "@/lib/deep-links";
@@ -18,12 +18,12 @@ export async function generateMetadata({
     params: Promise<{ username: string }>;
 }): Promise<Metadata> {
     const { username } = await params;
-    const pagesCollection = await getCollection<MongoPage>("pages");
-    const page = await pagesCollection.findOne({ slug: username });
+    
+    const page = await getPageBySlug(username);
 
     if (!page) return {};
 
-    const customTheme = page.customTheme;
+    const customTheme = page.customTheme as CustomTheme | null;
     const isCustom = page.themeId === 'custom' && !!customTheme;
 
     const title = (isCustom && customTheme?.seoTitle) || page.displayName || `@${page.slug} | Wify`;
@@ -58,50 +58,47 @@ export default async function PublicProfilePage({
 		notFound();
 	}
 
-    // Fetch page by slug from MongoDB
-    const pagesCollection = await getCollection<MongoPage>("pages");
-    const page = await pagesCollection.findOne({ slug: username });
+    // Fetch page by slug using server actions instead of raw ORM
+    const page = await getPageBySlug(username);
+
     if (!page) {
         notFound();
     }
 
-    // Fetch active links from MongoDB
-    const linksCollection = await getCollection("links");
-    const pageLinks = await linksCollection.find({ pageId: page.id }).sort({ order: 1 }).toArray();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const activeLinks = pageLinks.filter((l) => (l as any).isActive);
+    // Fetch active links using server actions
+    const activeLinks = await getActiveLinksByPageId(page.id);
 
     const theme = getTheme(page.themeId || "minimalist");
-    const customTheme = page.customTheme;
+    const customTheme = page.customTheme as CustomTheme | null;
     const isCustom = page.themeId === 'custom' && !!customTheme;
 
     // Determine effective styles
-    const background = isCustom ? (
+    const background = isCustom && customTheme ? (
         customTheme.backgroundType === 'gradient' ? customTheme.backgroundValue : 
         customTheme.backgroundType === 'image' ? `url(${customTheme.backgroundValue}) ${customTheme.backgroundPosition || 'center'}/${customTheme.backgroundSize || 'cover'} ${customTheme.backgroundRepeat || 'no-repeat'}` : 
         customTheme.backgroundValue
     ) : theme.style.background;
 
-    const backgroundOverlay = isCustom && customTheme.backgroundType === 'image' ? customTheme.backgroundOverlay : 'transparent';
+    const backgroundOverlay = isCustom && customTheme && customTheme.backgroundType === 'image' ? customTheme.backgroundOverlay : 'transparent';
 
-    const textColor = isCustom ? customTheme.textColor : theme.style.text;
-    const buttonBg = isCustom ? customTheme.buttonColor : theme.style.button;
-    const buttonText = isCustom ? customTheme.buttonTextColor : theme.style.buttonText;
-    const buttonRadiusValue = isCustom ? customTheme.buttonRadius : '12px';
-    const fontFamily = isCustom ? customTheme.fontFamily : theme.style.fontFamily;
+    const textColor = isCustom && customTheme ? customTheme.textColor : theme.style.text;
+    const buttonBg = isCustom && customTheme ? customTheme.buttonColor : theme.style.button;
+    const buttonText = isCustom && customTheme ? customTheme.buttonTextColor : theme.style.buttonText;
+    const buttonRadiusValue = isCustom && customTheme ? customTheme.buttonRadius : '12px';
+    const fontFamily = isCustom && customTheme ? customTheme.fontFamily : theme.style.fontFamily;
 
     // Avatar Styles
-    const avatarShape = isCustom ? customTheme.avatarStyle : 'circle';
-    const avatarBorderColor = isCustom ? customTheme.avatarBorderColor : 'transparent';
-    const avatarBorderSize = isCustom ? customTheme.avatarBorderSize : '0px';
+    const avatarShape = isCustom && customTheme ? customTheme.avatarStyle : 'circle';
+    const avatarBorderColor = isCustom && customTheme ? customTheme.avatarBorderColor : 'transparent';
+    const avatarBorderSize = isCustom && customTheme ? customTheme.avatarBorderSize : '0px';
     
-    const cardBg = isCustom ? (
+    const cardBg = isCustom && customTheme ? (
         customTheme.buttonStyle === 'glass' ? 'rgba(255,255,255,0.1)' : 
         customTheme.buttonStyle === 'soft' ? `${customTheme.buttonColor}15` : 
         customTheme.buttonStyle === 'outline' ? 'transparent' : customTheme.buttonColor
     ) : theme.style.card;
 
-    const cardBorder = isCustom ? (
+    const cardBorder = isCustom && customTheme ? (
         customTheme.buttonStyle === 'outline' ? customTheme.buttonColor : 
         customTheme.buttonStyle === 'glass' ? 'rgba(255,255,255,0.2)' : 'transparent'
     ) : theme.style.cardBorder;
@@ -124,7 +121,7 @@ export default async function PublicProfilePage({
             {!isCustom && <ThemeEffects theme={theme} />}
             
             {/* Background Overlay for Images */}
-            {isCustom && customTheme.backgroundType === 'image' && (
+            {isCustom && customTheme && customTheme.backgroundType === 'image' && (
                 <div 
                     className="fixed inset-0 pointer-events-none z-0" 
                     style={{ backgroundColor: backgroundOverlay }}
@@ -132,7 +129,7 @@ export default async function PublicProfilePage({
             )}
 
             {/* Custom CSS Injection */}
-            {isCustom && customTheme.customCss && (
+            {isCustom && customTheme && customTheme.customCss && (
                 <style dangerouslySetInnerHTML={{ __html: customTheme.customCss }} />
             )}
 			
@@ -180,8 +177,7 @@ export default async function PublicProfilePage({
 
 				{/* Links Container */}
 				<div className="flex flex-col gap-4 w-full">
-					{/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-					{activeLinks.map((link: any) => {
+					{activeLinks.map((link) => {
                         const { deepLink } = generateLinks(link.url);
                         return (
                             <TrackedLink 
@@ -192,13 +188,13 @@ export default async function PublicProfilePage({
                                 linkId={link.id}
                                 className={cn(
                                     "link-card group relative flex items-center justify-between p-4 px-6 shadow-sm hover:scale-[1.02] transition-all duration-300 border-[length:inherit]",
-                                    isCustom && customTheme.buttonStyle === 'shadow' && "shadow-[0_6px_0_0_rgba(0,0,0,0.1)]"
+                                    isCustom && customTheme && customTheme.buttonStyle === 'shadow' && "shadow-[0_6px_0_0_rgba(0,0,0,0.1)]"
                                 )}
                                 style={{
-                                    backgroundColor: isCustom ? (customTheme.buttonStyle === 'outline' ? 'transparent' : buttonBg) : 'var(--theme-card)',
-                                    borderColor: isCustom ? buttonBg : 'var(--theme-border)',
+                                    backgroundColor: isCustom && customTheme ? (customTheme.buttonStyle === 'outline' ? 'transparent' : buttonBg) : 'var(--theme-card)',
+                                    borderColor: isCustom && customTheme ? buttonBg : 'var(--theme-border)',
                                     borderRadius: buttonRadiusValue,
-                                    color: isCustom ? buttonText : 'inherit'
+                                    color: isCustom && customTheme ? buttonText : 'inherit'
                                 }}
                             >
                                 <div className="flex items-center gap-4">
@@ -206,7 +202,7 @@ export default async function PublicProfilePage({
                                         className="social-icon w-10 h-10 rounded-full flex items-center justify-center transition-colors"
                                         style={{ backgroundColor: theme.type === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }}
                                     >
-                                        <ExternalLink className="w-4 h-4" style={{ color: isCustom ? buttonText : 'var(--theme-muted)' }} />
+                                        <ExternalLink className="w-4 h-4" style={{ color: isCustom && customTheme ? buttonText : 'var(--theme-muted)' }} />
                                     </div>
                                     <span className="link-title font-semibold text-[15px]">{link.title}</span>
                                 </div>

@@ -1,22 +1,26 @@
 import { stackServerApp } from "@/stack/server";
+import { redirect } from "next/navigation";
 import { getDeeplinks } from "@/app/actions/deeplinks";
 import DeeplinksClient from "./DeeplinksClient";
-import { redirect } from "next/navigation";
 
 export default async function DeeplinksPage() {
     const user = await stackServerApp.getUser();
-    if (!user) return redirect("/dashboard");
+    if (!user) {
+        redirect("/dashboard");
+    }
 
-    const deeplinks = await getDeeplinks();
+    const initialDeeplinks = await getDeeplinks();
 
     return (
-        <div className="max-w-4xl mx-auto space-y-8 pb-12">
-            <div className="space-y-2">
-                <h1 className="text-3xl font-bold tracking-tight text-white italic">Smart Deeplinks</h1>
-                <p className="text-neutral-400">Create custom short links that open directly in native apps.</p>
+        <div className="space-y-6">
+            <div>
+                <h1 className="text-3xl font-bold tracking-tight">Managed Deeplinks</h1>
+                <p className="text-neutral-500 mt-2">
+                    Create shortened URLs that intelligently route mobile users to the native app instead of the web browser.
+                </p>
             </div>
             
-            <DeeplinksClient initialDeeplinks={JSON.parse(JSON.stringify(deeplinks))} />
+            <DeeplinksClient initialDeeplinks={initialDeeplinks} />
         </div>
     );
 }
