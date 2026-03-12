@@ -1,51 +1,47 @@
-import { getPageBySlug } from '@/app/actions/pages';
-import { notFound } from 'next/navigation';
-import { Instagram, Send, MessageCircle, PartyPopper, Flame, Ghost } from 'lucide-react';
+import { Instagram, Send, MessageCircle, PartyPopper, Flame, Ghost, Sparkles, Trophy } from 'lucide-react';
 import ClapButton from '@/components/bitotsav/ClapButton';
 import AnalyticsTracker from '@/components/analytics/AnalyticsTracker';
 import { Metadata } from 'next';
-import { motion } from 'framer-motion';
+import * as motion from 'framer-motion/client';
 
-export const dynamic = 'force-dynamic';
+export const metadata: Metadata = {
+    title: 'Bitotsav 2026 🎊',
+    description: 'The biggest cultural fest of East India! Join the party with our live clap counter.',
+    openGraph: {
+        title: 'Bitotsav 2026 🎊',
+        description: 'Join the party! Live clap counter and more.',
+    }
+};
 
-export async function generateMetadata(): Promise<Metadata> {
-    const page = await getPageBySlug('bitotsav');
-    return {
-        title: page?.displayName || 'Bitotsav 2026',
-        description: page?.bio || 'The biggest cultural fest of East India!',
-        openGraph: {
-            title: 'Bitotsav 2026 🎊',
-            description: 'Join the party! Live clap counter and more.',
-        }
-    };
-}
-
-export default async function BitotsavPage() {
-    const page = await getPageBySlug('bitotsav');
-    
-    // If not found, we still want to show a page but maybe with defaults 
-    // or we seed it on the fly (less ideal for server component)
-    const displayName = page?.displayName || "Bitotsav 2026";
-    const bio = page?.bio || "The craziest fest is here! Tap tap tap! 👏";
-    const claps = page?.claps || 0;
+export default function BitotsavPage() {
+    // Static defaults for the "Funny" page
+    const bio = "The craziest fest is here! Tap tap tap! 👏";
+    const staticPageId = "bitotsav-page-id";
+    const initialClaps = 0;
 
     return (
         <div className="min-h-screen bg-[#0F0F0F] text-white selection:bg-yellow-400 selection:text-black overflow-hidden font-sans">
-            <AnalyticsTracker pageId={page?.id || 'bitotsav'} />
+            <AnalyticsTracker pageId={staticPageId} />
             
             {/* Funny/Festive Background Elements */}
             <div className="fixed inset-0 pointer-events-none opacity-20">
-                <div className="absolute top-10 left-10 animate-bounce duration-[3000ms]">
+                <div className="absolute top-10 left-10 animate-bounce duration-3000">
                     <Ghost className="w-12 h-12 text-blue-400" />
                 </div>
                 <div className="absolute bottom-20 right-10 animate-pulse">
                     <Flame className="w-16 h-16 text-orange-500" />
                 </div>
-                <div className="absolute top-1/2 left-1/4 animate-spin duration-[10000ms]">
+                <div className="absolute top-1/2 left-1/4 animate-spin duration-10000">
                     <Ghost className="w-8 h-8 text-purple-400" />
                 </div>
-                <div className="absolute top-1/4 right-1/4 animate-bounce duration-[5000ms]">
+                <div className="absolute top-1/4 right-1/4 animate-bounce duration-5000">
                     <PartyPopper className="w-10 h-10 text-pink-400" />
+                </div>
+                <div className="absolute bottom-1/4 left-1/3 animate-pulse">
+                    <Trophy className="w-12 h-12 text-yellow-500/40" />
+                </div>
+                <div className="absolute top-1/3 right-10 animate-spin-slow">
+                    <Sparkles className="w-8 h-8 text-cyan-400/30" />
                 </div>
             </div>
 
@@ -76,7 +72,7 @@ export default async function BitotsavPage() {
 
                     {/* Clap Section */}
                     <div className="bg-white/5 backdrop-blur-2xl p-10 rounded-[3rem] border border-white/10 shadow-2xl w-full max-w-md">
-                        <ClapButton initialClaps={claps} slug="bitotsav" />
+                        <ClapButton initialClaps={initialClaps} slug="bitotsav" />
                         <p className="mt-6 text-white/50 text-sm font-bold uppercase tracking-widest">
                             Official Hype Meter
                         </p>
@@ -95,7 +91,7 @@ export default async function BitotsavPage() {
                             </div>
                             <div className="text-center">
                                 <h3 className="font-black text-xl text-white">INSTAGRAM</h3>
-                                <p className="text-white/40 text-xs font-bold uppercase mt-1 tracking-widest">Don't Miss the sauce</p>
+                                <p className="text-white/40 text-xs font-bold uppercase mt-1 tracking-widest">Don&apos;t Miss the sauce</p>
                             </div>
                         </a>
 
@@ -116,8 +112,15 @@ export default async function BitotsavPage() {
                     </div>
 
                     {/* Funny Quote */}
-                    <div className="pt-12 text-white/10 uppercase tracking-[0.4em] text-[12px] font-black italic">
-                        The East India Legends have arrived.
+                    <div className="pt-12 flex flex-col items-center gap-4">
+                        <div className="px-4 py-2 bg-yellow-400/10 border border-yellow-400/20 rounded-2xl">
+                            <p className="text-yellow-400 text-xs font-bold uppercase tracking-widest">
+                                Warning: Excessive clapping may cause euphoria 🧪
+                            </p>
+                        </div>
+                        <div className="text-white/10 uppercase tracking-[0.4em] text-[12px] font-black italic">
+                            The East India Legends have arrived.
+                        </div>
                     </div>
                 </div>
             </div>
