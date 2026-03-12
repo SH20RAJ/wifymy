@@ -1,38 +1,29 @@
 'use server';
 
 import { db } from "@/db";
-import { claps, pages } from "@/db/schema";
-import { eq, sql, count } from "drizzle-orm";
+import { bitotsavClaps } from "@/db/schema";
+import { count } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
-export async function incrementClaps(slug: string) {
-    const page = await db.query.pages.findFirst({
-        where: eq(pages.slug, slug)
-    });
-
-    if (!page) throw new Error("Page not found");
-
-    await db.insert(claps).values({
+export async function incrementClaps() {
+    await db.insert(bitotsavClaps).values({
         id: crypto.randomUUID(),
-        pageId: page.id,
         createdAt: new Date()
     });
 
     revalidatePath('/bitotsav');
-    revalidatePath(`/${slug}`);
 }
 
 export async function getBitotsavData() {
-    const slug = 'bitotsav';
-    const page = await db.query.pages.findFirst({
-        where: eq(pages.slug, slug)
-    });
+    try {
+        const clapCountResult = await db.select({ value: count() }).from(bitotsavClaps);
+        const clapCount = clapCountResult[0]?.value || 0;
 
-    if (!page) {
-        // We might want to seed this page if it doesn't exist, 
-        // but for now let's just return what we find.
-        return null;
+        return {
+            claps: Number(clapCount)
+        };
+    } catch (error) {
+        console.error("Error fetching bitotsav data:", error);
+        return { claps: 0 };
     }
-
-    return page;
 }

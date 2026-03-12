@@ -71,6 +71,15 @@ export default function BitotsavClient({ initialClaps }: { initialClaps: number 
                 <div className="absolute top-1/2 right-1/4 animate-spin-slow">
                     <Sparkles className="w-20 h-20 text-yellow-400/10" />
                 </div>
+                <div className="absolute bottom-1/4 right-10 animate-bounce duration-5000">
+                    <PartyPopper className="w-12 h-12 text-pink-400/20" />
+                </div>
+                <div className="absolute top-10 right-1/3 animate-pulse">
+                    <Flame className="w-16 h-16 text-orange-500/20" />
+                </div>
+                <div className="absolute bottom-1/3 left-10 animate-spin duration-10000">
+                    <Trophy className="w-12 h-12 text-yellow-500/20" />
+                </div>
                 <AnimatePresence>
                     {[...Array(10)].map((_, i) => (
                         <motion.div
@@ -86,6 +95,7 @@ export default function BitotsavClient({ initialClaps }: { initialClaps: number 
                     ))}
                 </AnimatePresence>
             </div>
+
 
             {/* Premium Glows */}
             <div className="fixed -top-48 -left-48 w-[600px] h-[600px] bg-purple-900/40 blur-[150px] rounded-full mix-blend-screen" />
@@ -192,7 +202,13 @@ export default function BitotsavClient({ initialClaps }: { initialClaps: number 
                     {/* Social Links Section */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-3xl">
                         <a 
-                            href="https://www.instagram.com/bitotsav.2026/" 
+                            href="instagram://user?username=bitotsav.2026" 
+                            onClick={(e) => {
+                                // Fallback for desktop or if app not installed
+                                setTimeout(() => {
+                                    window.location.href = "https://www.instagram.com/bitotsav.2026/";
+                                }, 500);
+                            }}
                             target="_blank" 
                             rel="noopener noreferrer"
                             className="group flex flex-col items-center gap-6 bg-white/5 backdrop-blur-xl border border-white/10 p-10 rounded-[3rem] hover:bg-white/10 hover:border-pink-500/50 transition-all hover:-translate-y-2"
@@ -237,6 +253,9 @@ export default function BitotsavClient({ initialClaps }: { initialClaps: number 
                             <div className="h-px w-24 bg-gradient-to-r from-transparent via-white to-transparent" />
                             <p className="text-[10px] font-black uppercase tracking-[0.8em] italic">
                                 BIT MESRA LEGENDS ONLY
+                            </p>
+                            <p className="text-[8px] font-bold text-white/10 uppercase tracking-[0.3em]">
+                                Powered by <span className="text-white/20">WifyMy</span>
                             </p>
                         </div>
                     </div>
