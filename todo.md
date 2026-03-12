@@ -10,4 +10,4 @@ and join for query feedback and other things
 https://chat.whatsapp.com/C8ICNlasuguC9g0EQ3HDy3
 
 
-keep the page very fully and also add 
+keep the page very funny and also add 
