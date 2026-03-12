@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Instagram, MessageCircle, Unlock, Lock, Timer, Zap, ShieldCheck } from 'lucide-react';
+import { Instagram, MessageCircle, Unlock, Lock, Timer, ShieldCheck } from 'lucide-react';
 import ClapButton from '@/components/bitotsav/ClapButton';
 import { motion } from 'framer-motion';
 
