@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Instagram, MessageCircle, Unlock, Lock, Timer, ShieldCheck } from 'lucide-react';
+import { Instagram, MessageCircle, Unlock, ShieldCheck } from 'lucide-react';
 import ClapButton from '@/components/bitotsav/ClapButton';
 import { motion } from 'framer-motion';
 
@@ -84,36 +83,22 @@ export default function BitotsavClient({ initialClaps }: { initialClaps: number 
                         </a>
                     </div>
 
-                    {/* Portal Timer Section */}
+                    {/* Portal Link Section */}
                     <div className="w-full space-y-6">
                         <div className="flex items-center justify-between px-2">
                             <div className="flex items-center gap-3">
-                                {isLinkEnabled ? 
-                                    <Unlock size={16} className="text-white/40" /> : 
-                                    <Lock size={16} className="text-white/40" />
-                                }
+                                <Unlock size={16} className="text-white/40" />
                                 <span className="text-xs uppercase tracking-widest text-white/40 font-medium">Main Portal Status</span>
                             </div>
-                            {!isLinkEnabled && (
-                                <div className="flex items-center gap-2 font-mono text-sm text-white/60">
-                                    <Timer size={14} />
-                                    <span>{formatTime(timeLeft)}</span>
-                                </div>
-                            )}
                         </div>
 
                         <a 
                             href="https://bitotsav.bitmesra.ac.in/" 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className={`block w-full text-center py-6 rounded-2xl font-medium text-lg transition-all border ${
-                                isLinkEnabled 
-                                ? 'bg-white text-black hover:bg-white/90 border-white' 
-                                : 'bg-transparent text-white/20 border-white/10 cursor-not-allowed'
-                            }`}
-                            onClick={(e) => !isLinkEnabled && e.preventDefault()}
+                            className="block w-full text-center py-6 rounded-2xl font-medium text-lg transition-all border bg-white text-black hover:bg-white/90 border-white"
                         >
-                            {isLinkEnabled ? 'Enter Official Website' : 'Portal Locked'}
+                            Enter Official Website
                         </a>
                     </div>
                
