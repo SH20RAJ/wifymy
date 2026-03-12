@@ -7,21 +7,12 @@ import { motion } from 'framer-motion';
 
 export default function BitotsavClient({ initialClaps }: { initialClaps: number }) {
     // Timer logic for the official website link
-    const [timeLeft, setTimeLeft] = useState<number>(3600); // 1 hour in seconds
-    const [isLinkEnabled, setIsLinkEnabled] = useState(false);
+    const [timeLeft, setTimeLeft] = useState<number>(0);
+    const [isLinkEnabled, setIsLinkEnabled] = useState(true);
 
     useEffect(() => {
-        if (timeLeft <= 0) {
-            setIsLinkEnabled(true);
-            return;
-        }
-
-        const timer = setInterval(() => {
-            setTimeLeft(prev => prev - 1);
-        }, 1000);
-
-        return () => clearInterval(timer);
-    }, [timeLeft]);
+        // Portal is now unlocked
+    }, []);
 
     const formatTime = (seconds: number) => {
         const m = Math.floor((seconds % 3600) / 60);
