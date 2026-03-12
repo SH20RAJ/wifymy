@@ -84,6 +84,32 @@ export default function BitotsavClient({ initialClaps }: { initialClaps: number 
                         </div>
                     </motion.div>
 
+                    {/* Social Links - Clean Grid */}
+                    <div className="grid grid-cols-2 gap-4 w-full">
+                        <a 
+                            href="instagram://user?username=bitotsav.2026" 
+                            onClick={() => {
+                                setTimeout(() => {
+                                    window.open("https://www.instagram.com/bitotsav.2026/", "_blank");
+                                }, 500);
+                            }}
+                            className="flex items-center justify-center gap-3 bg-white/[0.03] border border-white/10 py-5 rounded-2xl hover:bg-white/[0.06] transition-all group"
+                        >
+                            <Instagram size={18} className="text-white/60 group-hover:text-white transition-colors" />
+                            <span className="text-xs uppercase tracking-widest text-white/60 group-hover:text-white transition-colors">Instagram</span>
+                        </a>
+
+                        <a 
+                            href="https://chat.whatsapp.com/C8ICNlasuguC9g0EQ3HDy3" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-center gap-3 bg-white/[0.03] border border-white/10 py-5 rounded-2xl hover:bg-white/[0.06] transition-all group"
+                        >
+                            <MessageCircle size={18} className="text-white/60 group-hover:text-white transition-colors" />
+                            <span className="text-xs uppercase tracking-widest text-white/60 group-hover:text-white transition-colors">WhatsApp</span>
+                        </a>
+                    </div>
+
                     {/* Portal Timer Section */}
                     <div className="w-full space-y-6">
                         <div className="flex items-center justify-between px-2">
@@ -116,33 +142,7 @@ export default function BitotsavClient({ initialClaps }: { initialClaps: number 
                             {isLinkEnabled ? 'Enter Official Website' : 'Portal Locked'}
                         </a>
                     </div>
-
-                    {/* Social Links - Clean Grid */}
-                    <div className="grid grid-cols-2 gap-4 w-full">
-                        <a 
-                            href="instagram://user?username=bitotsav.2026" 
-                            onClick={() => {
-                                setTimeout(() => {
-                                    window.open("https://www.instagram.com/bitotsav.2026/", "_blank");
-                                }, 500);
-                            }}
-                            className="flex items-center justify-center gap-3 bg-white/[0.03] border border-white/10 py-5 rounded-2xl hover:bg-white/[0.06] transition-all group"
-                        >
-                            <Instagram size={18} className="text-white/60 group-hover:text-white transition-colors" />
-                            <span className="text-xs uppercase tracking-widest text-white/60 group-hover:text-white transition-colors">Instagram</span>
-                        </a>
-
-                        <a 
-                            href="https://chat.whatsapp.com/C8ICNlasuguC9g0EQ3HDy3" 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="flex items-center justify-center gap-3 bg-white/[0.03] border border-white/10 py-5 rounded-2xl hover:bg-white/[0.06] transition-all group"
-                        >
-                            <MessageCircle size={18} className="text-white/60 group-hover:text-white transition-colors" />
-                            <span className="text-xs uppercase tracking-widest text-white/60 group-hover:text-white transition-colors">WhatsApp</span>
-                        </a>
-                    </div>
-
+               
                     {/* Footer Area */}
                     <footer className="w-full pt-16 flex flex-col items-center space-y-12">
                         <div className="opacity-40 hover:opacity-100 transition-opacity duration-500 transform scale-75 md:scale-90">
